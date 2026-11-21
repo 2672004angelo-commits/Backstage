@@ -3,6 +3,7 @@ import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { notFound } from "next/navigation";
 import { demoShows } from "@/lib/demo";
+import PaymentUploadForm from "./PaymentUploadForm";
 
 export const metadata: Metadata = {
   title: "الدفع",
@@ -77,7 +78,6 @@ export default async function PaymentPage({ params, searchParams }: {
       </main>
     );
   }
-  const settings = await db.collection("settings").findOne({ key: "payment" });
   return (
     <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
       {submitted ? (
@@ -92,26 +92,8 @@ export default async function PaymentPage({ params, searchParams }: {
         <p>رقم الحجز: <code dir="ltr">{id}</code></p>
         <p>موعد العرض: <strong>{String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</strong></p>
         <p>المبلغ المستحق: <strong style={{ color: "var(--gold)" }}>{Number(booking.totalAmount).toLocaleString("ar")} د.ع</strong></p>
-        <div style={{ direction: "rtl", lineHeight: 2, background: "#101114", padding: 16, borderRadius: 8 }}>
-          <p>الحساب البنكي أو المحفظة: {String(settings?.bankName || "سيتم تهيئته من لوحة الإدارة")}</p>
-          <p>رقم الحساب: {String(settings?.accountNumber || "—")}</p>
-          <p>اسم المستفيد: {String(settings?.accountHolder || "—")}</p>
-        </div>
         {["PENDING_PAYMENT", "REJECTED"].includes(booking.status) ? (
-          <form action="/api/payments" method="post" encType="multipart/form-data" style={{ display: "grid", gap: 16, marginTop: 24 }}>
-            <input type="hidden" name="bookingId" value={id} />
-          <label>طريقة التحويل
-            <select className="field" name="paymentMethod" required>
-              <option value="" disabled selected>اختر Instapay أو محفظة كاش</option>
-              <option value="INSTAPAY">Instapay</option>
-              <option value="CASH_WALLET">محفظة كاش</option>
-            </select>
-          </label>
-          <label>صورة إثبات التحويل (JPEG أو PNG أو WebP، حتى 8 ميجابايت)
-              <input className="field" type="file" name="screenshot" accept="image/jpeg,image/png,image/webp" required />
-            </label>
-            <button className="btn" type="submit">رفع إثبات الدفع</button>
-          </form>
+          <PaymentUploadForm bookingId={id} />
         ) : (
           <div style={{ marginTop: 24 }}>
             <p>حالة الحجز: <strong>{booking.status as string}</strong></p>

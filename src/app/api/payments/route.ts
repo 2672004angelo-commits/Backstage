@@ -39,5 +39,5 @@ export async function POST(request: NextRequest) {
     { _id: booking._id },
     { $set: { status: "PENDING_REVIEW", updatedAt: new Date() } },
   );
-  return NextResponse.redirect(new URL(`/payment/${bookingId}?submitted=1`, request.url));
+  return NextResponse.json({ ok: true, bookingId });
 }

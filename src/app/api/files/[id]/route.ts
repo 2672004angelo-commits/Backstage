@@ -9,7 +9,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   if (!ObjectId.isValid(id)) return NextResponse.json({ error: "INVALID_ID" }, { status: 400 });
   const db = await getDb();
-  const file = await db.collection("fs.files").findOne({ _id: new ObjectId(id) });
+  const file = await db.collection("uploads.files").findOne({ _id: new ObjectId(id) })
+    || await db.collection("fs.files").findOne({ _id: new ObjectId(id) });
   if (!file) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   if (file.metadata?.purpose === "payment-screenshot") {
     try { await requireRole(["admin"]); }
