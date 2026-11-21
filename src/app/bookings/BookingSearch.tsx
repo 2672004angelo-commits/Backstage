@@ -3,8 +3,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 type SearchResult = {
+  id: string;
   status: string;
   show: string;
+  fullName: string;
   performanceDate?: string;
   performanceTime?: string;
   quantity: number;
@@ -16,8 +18,10 @@ type SearchCredentials = { bookingId: string; mobile: string; email: string };
 function isSearchResult(value: unknown): value is SearchResult {
   if (!value || typeof value !== "object") return false;
   const result = value as Record<string, unknown>;
-  return typeof result.status === "string"
+  return typeof result.id === "string"
+    && typeof result.status === "string"
     && typeof result.show === "string"
+    && typeof result.fullName === "string"
     && typeof result.quantity === "number"
     && (result.performanceDate === undefined || typeof result.performanceDate === "string")
     && (result.performanceTime === undefined || typeof result.performanceTime === "string")
@@ -33,7 +37,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function BookingSearch() {
-  const [result, setResult] = useState<SearchResult | null>(null);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [credentials, setCredentials] = useState<SearchCredentials | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,7 +88,7 @@ export default function BookingSearch() {
   }
 
   useEffect(() => {
-    if (!credentials || result?.status !== "PENDING_REVIEW") return;
+    if (!credentials || !results.some((result) => result.status === "PENDING_REVIEW")) return;
     let active = true;
     const timer = window.setInterval(async () => {
       try {
@@ -94,10 +98,10 @@ export default function BookingSearch() {
           body: JSON.stringify(credentials),
         });
         if (!response.ok) throw new Error(`BOOKING_STATUS_${response.status}`);
-        const data: unknown = await response.json();
-        if (!isSearchResult(data)) throw new Error("INVALID_BOOKING_STATUS");
-        if (active && data.status !== "PENDING_REVIEW") {
-          setResult(data);
+        const data = await response.json();
+        if (!data || !Array.isArray(data.bookings) || !data.bookings.every(isSearchResult)) throw new Error("INVALID_BOOKING_STATUS");
+        if (active) {
+          setResults(data.bookings);
           setError("");
         }
       } catch {
@@ -108,19 +112,19 @@ export default function BookingSearch() {
       active = false;
       window.clearInterval(timer);
     };
-  }, [credentials, result?.status]);
+  }, [credentials, results.some((result) => result.status === "PENDING_REVIEW")]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
-    setResult(null);
+    setResults([]);
     const form = new FormData(event.currentTarget);
     try {
       const searchCredentials = {
-        bookingId: String(form.get("bookingId") || "").trim(),
-        mobile: String(form.get("mobile") || "").trim(),
-        email: String(form.get("email") || "").trim(),
+        bookingId: "",
+        mobile: String(form.get("mobile") || "").trim().replace(/^\+/, ""),
+        email: "",
       };
       const response = await fetch("/api/bookings/search", {
         method: "POST",
@@ -132,9 +136,9 @@ export default function BookingSearch() {
         setError(response.status === 404 ? "لم نعثر على الحجز بهذه البيانات." : `تعذر البحث عن الحجز (${response.status}).`);
         return;
       }
-      if (!isSearchResult(data)) throw new Error("INVALID_BOOKING_STATUS");
+      if (!data || !Array.isArray(data.bookings) || !data.bookings.every(isSearchResult)) throw new Error("INVALID_BOOKING_STATUS");
       setCredentials(searchCredentials);
-      setResult(data);
+      setResults(data.bookings);
     } catch {
       setError("تعذر الاتصال بالخادم. حاول مرة أخرى.");
     } finally {
@@ -145,46 +149,49 @@ export default function BookingSearch() {
   return (
     <div>
       <form onSubmit={submit} className="card booking-search-form">
-        <p>أدخل رقم الحجز الظاهر في رابط الدفع ورقم الهاتف المستخدم عند الحجز. إذا أضفت بريدًا إلكترونيًا، أدخله أيضًا.</p>
-        <input className="field" name="bookingId" placeholder="رقم الحجز" required />
-        <input className="field" name="mobile" type="tel" placeholder="رقم الهاتف" required />
-        <input className="field" name="email" type="email" placeholder="البريد الإلكتروني (إن أُضيف للحجز)" />
+        <p>أدخل رقم الهاتف الذي استخدمته عند الحجز لعرض جميع حجوزاتك وحالات التذاكر.</p>
+        <input className="field" name="mobile" type="tel" inputMode="tel" placeholder="رقم الهاتف" required pattern="[0-9]{8,15}" />
         <button className="btn" type="submit" disabled={loading}>{loading ? "جارٍ البحث..." : "عرض حالة الحجز"}</button>
       </form>
       {error && <p className="admin-form-status is-error" role="alert">{error}</p>}
-      {result && (
-        <section className="card booking-search-result" aria-live="polite">
-          <p>العرض: <strong>{result.show}</strong></p>
-          {(result.performanceDate || result.performanceTime) && (
-            <p>موعد العرض: <strong>{result.performanceDate} {result.performanceTime}</strong></p>
-          )}
-          <p>الحالة: <strong>{statusLabels[result.status] || result.status}</strong></p>
-          {result.rejectionReason && <p>سبب الرفض: {result.rejectionReason}</p>}
-          {credentials && (
-            <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
-              <button className="btn" type="button" onClick={() => void enableNotifications()}>
-                تفعيل إشعارات الهاتف عند اعتماد الحجز
-              </button>
-              {pushStatus && <p className="admin-form-status" role="status">{pushStatus}</p>}
-            </div>
-          )}
-          {result.status === "PENDING_REVIEW" && <p>ستتحدث الحالة تلقائيًا أثناء بقاء هذه الصفحة مفتوحة.</p>}
-          {result.status === "APPROVED" && result.tickets.length > 0 && (
-            <div className="booking-ready-tickets">
-              <h2>تذكرتك جاهزة</h2>
-              <p>احفظ صورة التذكرة على هاتفك وقدمها عند باب العرض.</p>
-              {result.tickets.map((ticket) => (
-                <article className="booking-ready-ticket" key={ticket.ticketId}>
-                  <strong>{ticket.ticketId}</strong>
-                  <a href={ticket.imageUrl} target="_blank" rel="noreferrer" download>
-                    <img src={ticket.imageUrl} alt={`التذكرة ${ticket.ticketId}`} referrerPolicy="no-referrer" />
-                  </a>
-                  <a href={ticket.imageUrl} download>تنزيل التذكرة</a>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+      {results.length > 0 && (
+        <div className="booking-results-list" aria-live="polite">
+          {results.map((result) => (
+            <section className="card booking-search-result" key={result.id}>
+              <p>الاسم: <strong>{result.fullName}</strong></p>
+              <p>العرض: <strong>{result.show}</strong></p>
+              {(result.performanceDate || result.performanceTime) && (
+                <p>موعد العرض: <strong>{result.performanceDate} {result.performanceTime}</strong></p>
+              )}
+              <p>الحالة: <strong>{statusLabels[result.status] || result.status}</strong></p>
+              {result.rejectionReason && <p>سبب الرفض: {result.rejectionReason}</p>}
+              {credentials && (
+                <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+                  <button className="btn" type="button" onClick={() => void enableNotifications()}>
+                    تفعيل إشعارات الهاتف لحالة الحجوزات
+                  </button>
+                  {pushStatus && <p className="admin-form-status" role="status">{pushStatus}</p>}
+                </div>
+              )}
+              {result.status === "PENDING_REVIEW" && <p>ستتحدث حالة الحجز تلقائيًا أثناء بقاء هذه الصفحة مفتوحة.</p>}
+              {result.status === "APPROVED" && result.tickets.length > 0 && (
+                <div className="booking-ready-tickets">
+                  <h2>تذاكر الحجز جاهزة</h2>
+                  <p>{result.tickets.length > 1 ? "احفظ التذاكر تحت بعضها؛ كل تذكرة مستقلة." : "احفظ صورة التذكرة وقدمها عند باب العرض."}</p>
+                  {result.tickets.map((ticket) => (
+                    <article className="booking-ready-ticket" key={ticket.ticketId}>
+                      <strong>{ticket.ticketId}</strong>
+                      <a href={ticket.imageUrl} target="_blank" rel="noreferrer" download>
+                        <img src={ticket.imageUrl} alt={`التذكرة ${ticket.ticketId}`} referrerPolicy="no-referrer" />
+                      </a>
+                      <a href={ticket.imageUrl} download>تنزيل التذكرة</a>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -55,11 +55,11 @@ export default async function BookingPage({
         <header className="public-booking-heading">
           <span>BACKSTAGE · حجز التذاكر</span>
           <h1>حجز: {show.title}</h1>
-          <p>{show.price.toLocaleString("ar")} د.ع للتذكرة الواحدة لكل ليلة.</p>
+          <p>{show.price.toLocaleString("ar")} جنيه للتذكرة الواحدة لكل ليلة.</p>
         </header>
         <form className="card public-booking-form" action={`/payment/${id}`} method="get">
           <PerformanceSelect performances={performances} selectedId={selectedId} />
-          <label className="public-booking-field">الاسم الكامل<input className="field" name="fullName" required minLength={2} defaultValue="ضيف تجربة العرض" /></label>
+          <label className="public-booking-field">الاسم رباعيًا (مطلوب)<input className="field" name="fullName" required minLength={7} pattern=".*\S+\s+\S+\s+\S+\s+\S+.*" title="أدخل الاسم الرباعي كما يظهر في البطاقة" placeholder="محمد أحمد علي حسن" /></label>
           <label className="public-booking-field">رقم الهاتف<input className="field" name="mobile" required defaultValue="07701234567" /></label>
           <label className="public-booking-field">البريد الإلكتروني (اختياري)<input className="field" name="email" type="email" /></label>
           <input type="hidden" name="quantity" value="1" />
@@ -84,11 +84,11 @@ export default async function BookingPage({
         <header className="public-booking-heading">
           <span>BACKSTAGE · حجز التذاكر</span>
           <h1>حجز: {demo.title}</h1>
-          <p>{demo.price.toLocaleString("ar")} د.ع للتذكرة الواحدة لكل ليلة.</p>
+          <p>{demo.price.toLocaleString("ar")} جنيه للتذكرة الواحدة لكل ليلة.</p>
         </header>
         <form className="card public-booking-form" action={`/payment/${id}`} method="get">
           <PerformanceSelect performances={performances} selectedId={selectedId} />
-          <label className="public-booking-field">الاسم الكامل<input className="field" name="fullName" required minLength={2} defaultValue="ضيف تجربة العرض" /></label>
+          <label className="public-booking-field">الاسم رباعيًا (مطلوب)<input className="field" name="fullName" required minLength={7} pattern=".*\S+\s+\S+\s+\S+\s+\S+.*" title="أدخل الاسم الرباعي كما يظهر في البطاقة" placeholder="محمد أحمد علي حسن" /></label>
           <label className="public-booking-field">رقم الهاتف<input className="field" name="mobile" required defaultValue="07701234567" /></label>
           <label className="public-booking-field">البريد الإلكتروني (اختياري)<input className="field" name="email" type="email" /></label>
           <input type="hidden" name="quantity" value="1" />
@@ -109,14 +109,14 @@ export default async function BookingPage({
       <header className="public-booking-heading">
         <span>BACKSTAGE · حجز التذاكر</span>
         <h1>حجز: {String(show.title)}</h1>
-        <p>{Number(show.price).toLocaleString("ar")} د.ع للتذكرة الواحدة لكل ليلة.</p>
+        <p>{Number(show.price).toLocaleString("ar")} جنيه للتذكرة الواحدة لكل ليلة.</p>
       </header>
       {availablePerformances.length ? (
         <form className="card public-booking-form" action="/api/bookings" method="post">
           <input type="hidden" name="showId" value={id} />
           <input type="hidden" name="quantity" value="1" />
           <PerformanceSelect performances={performances} selectedId={selectedId} />
-          <label className="public-booking-field">الاسم الكامل<input className="field" name="fullName" required minLength={2} /></label>
+          <label className="public-booking-field">الاسم رباعيًا (مطلوب)<input className="field" name="fullName" required minLength={7} pattern=".*\S+\s+\S+\s+\S+\s+\S+.*" title="أدخل الاسم الرباعي كما يظهر في البطاقة" placeholder="محمد أحمد علي حسن" /></label>
           <label className="public-booking-field">رقم الهاتف<input className="field" name="mobile" required pattern="\+?[0-9]{8,15}" /></label>
           <label className="public-booking-field">البريد الإلكتروني (اختياري)<input className="field" name="email" type="email" /></label>
           <p className="public-booking-note">تذكرة واحدة لكل رقم هاتف أو بريد إلكتروني في الليلة الواحدة. يمكن الحجز لليالي أخرى كلٌّ على حدة.</p>

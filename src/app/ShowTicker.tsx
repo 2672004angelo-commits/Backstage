@@ -24,7 +24,7 @@ function ShowGroup({ shows, duplicate = false }: { shows: ShowCard[]; duplicate?
             <h3>{show.title}</h3>
             <p>{show.venue}</p>
             <div className="public-show-bottom">
-              <strong>{show.price} <small>د.ع</small></strong>
+              <strong>{show.price} <small>جنيه</small></strong>
               <a
                 href={`/shows/${show.id}`}
                 tabIndex={duplicate ? -1 : undefined}

@@ -17,7 +17,7 @@ export default async function AdminBookings() {
         {demoBookings.map((booking) => (
           <article className="card admin-booking-card" key={booking.id}>
             <strong>{booking.fullName}</strong><span style={{ float: "left", color: "var(--gold)" }}>{booking.id}</span>
-            <p>{booking.mobile} | {booking.quantity} تذاكر | {booking.totalAmount.toLocaleString("ar")} د.ع</p>
+            <p>{booking.mobile} | {booking.quantity} تذاكر | {booking.totalAmount.toLocaleString("ar")} جنيه</p>
             <p>الحالة: <b>{booking.status}</b></p>
             {booking.status === "PENDING_REVIEW" && <button className="btn" type="button">اعتماد الدفع التجريبي</button>}
           </article>
@@ -44,7 +44,7 @@ export default async function AdminBookings() {
           <article className="card admin-booking-card" key={booking._id.toString()}>
             <strong>{booking.fullName as string}</strong>
             <p>{String(booking.showSnapshot?.title || "العرض")} · {String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</p>
-            <p>{booking.mobile as string} | {String(booking.quantity)} تذاكر | {Number(booking.totalAmount).toLocaleString("ar")} د.ع</p>
+            <p>{booking.mobile as string} | {String(booking.quantity)} تذاكر | {Number(booking.totalAmount).toLocaleString("ar")} جنيه</p>
             <p>الحالة: <b>{booking.status as string}</b></p>
             {latestPayment.get(booking._id.toString())?.screenshotFileId && (
               <>

@@ -51,7 +51,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
           <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{demo.title}</h1>
           <p style={{ lineHeight: 2, color: "#bbb" }}>{demo.description}</p>
           <p><strong>المكان:</strong> {demo.venue}</p>
-          <p style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} د.ع</p>
+          <p style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</p>
           <section className="public-performance-list">
             <h2>مواعيد ليالي العرض</h2>
             {performances.map((performance, index) => (
@@ -81,7 +81,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
           <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{demo.title}</h1>
           <p style={{ lineHeight: 2, color: "#bbb" }}>{demo.description}</p>
           <p><strong>المكان:</strong> {demo.venue}</p>
-          <p style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} د.ع</p>
+          <p style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</p>
           <section className="public-performance-list">
             <h2>مواعيد ليالي العرض</h2>
             {performances.map((performance, index) => (
@@ -109,7 +109,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
         <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{show.title as string}</h1>
         <p style={{ lineHeight: 2, color: "#bbb" }}>{show.description as string}</p>
         <p><strong>المكان:</strong> {show.venue as string}</p>
-        <p style={{ color: "var(--gold)", fontSize: 24 }}>{Number(show.price).toLocaleString("ar")} د.ع</p>
+        <p style={{ color: "var(--gold)", fontSize: 24 }}>{Number(show.price).toLocaleString("ar")} جنيه</p>
         <section className="public-performance-list">
           <h2>مواعيد ليالي العرض</h2>
           {performances.map((performance, index) => (

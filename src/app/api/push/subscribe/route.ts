@@ -9,19 +9,29 @@ export async function POST(request: NextRequest) {
   const mobile = String(body.mobile || "").trim();
   const email = String(body.email || "").trim().toLowerCase();
   const subscription = body.subscription;
-  if (!ObjectId.isValid(bookingId) || !subscription?.endpoint) {
+  if (!subscription?.endpoint) {
     return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400 });
   }
   const db = await getDb();
-  const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
-  if (!booking || booking.mobile !== mobile || (email && booking.email?.toLowerCase() !== email)) {
+  const normalizedMobile = mobile.replace(/^\+/, "");
+  const bookings = await db.collection("bookings").find({
+    $or: [
+      { mobileNormalized: normalizedMobile },
+      { mobile: { $in: [normalizedMobile, `+${normalizedMobile}`] } },
+    ],
+  }).limit(50).toArray();
+  if (!bookings.length) {
     return NextResponse.json({ error: "INVALID_CREDENTIALS" }, { status: 403 });
   }
+  const bookingIds = bookings.map((booking) => booking._id.toString());
+  const subscriptionKey = `${normalizedMobile}:${subscription.endpoint}`;
   await db.collection("pushSubscriptions").updateOne(
-    { bookingId, endpoint: subscription.endpoint },
+    { subscriptionKey },
     {
       $set: {
-        bookingId,
+        bookingIds,
+        mobile: normalizedMobile,
+        subscriptionKey,
         endpoint: subscription.endpoint,
         subscription,
         updatedAt: new Date(),

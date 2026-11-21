@@ -75,6 +75,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         createdAt: new Date(),
       });
     }
+    const issuedCount = await db.collection("tickets").countDocuments({ bookingId: booking._id, status: "ACTIVE" });
+    if (issuedCount !== Number(booking.quantity)) {
+      return NextResponse.json({
+        error: "TICKET_ISSUANCE_INCOMPLETE",
+        issuedCount,
+        quantity: Number(booking.quantity),
+      }, { status: 500 });
+    }
   } else if (action === "reject") {
     await db.collection("bookings").updateOne({ _id: booking._id }, {
       $set: { status: "REJECTED", rejectionReason: String(body.reason).trim(), updatedAt: new Date() },
@@ -106,5 +114,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       url: "/bookings",
     });
   }
-  return NextResponse.json({ ok: true });
+  const issuedCount = action === "approve"
+    ? await db.collection("tickets").countDocuments({ bookingId: booking._id, status: "ACTIVE" })
+    : undefined;
+  return NextResponse.json({ ok: true, issuedCount, quantity: Number(booking.quantity) });
 }

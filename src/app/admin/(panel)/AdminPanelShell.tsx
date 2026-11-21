@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import LanguageToggle from "../../LanguageToggle";
 
 const navigation = [
   { href: "/admin", label: "لوحة التحكم", icon: "◈" },
@@ -165,9 +166,12 @@ export default function AdminPanelShell({ children, databaseConfigured }: AdminP
               <strong>{activeSection?.label || "إدارة المنصة"}</strong>
             </div>
           </div>
-          <Link className="admin-site-link" href="/">
-            عرض الموقع <span aria-hidden="true">↗</span>
-          </Link>
+          <div className="admin-topbar-actions">
+            <LanguageToggle />
+            <Link className="admin-site-link" href="/">
+              عرض الموقع <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         </header>
         <div className="admin-content">{children}</div>
       </div>

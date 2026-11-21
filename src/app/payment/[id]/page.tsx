@@ -25,7 +25,7 @@ export default async function PaymentPage({ params, searchParams }: {
         <h1>الدفع اليدوي</h1>
         <section className="card" style={{ padding: 28 }}>
           <p>عرض تجريبي: <strong>{demo.title}</strong></p>
-          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} د.ع</strong></p>
+          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</strong></p>
           <div style={{ lineHeight: 2, background: "#101114", padding: 16, borderRadius: 8 }}>
             <p>بنك الرافدين</p><p>رقم الحساب: IQ98 8000 1234 5678 9012</p><p>المستفيد: BACKSTAGE</p>
           </div>
@@ -60,7 +60,7 @@ export default async function PaymentPage({ params, searchParams }: {
         <h1>الدفع اليدوي</h1>
         <section className="card" style={{ padding: 28 }}>
           <p>عرض تجريبي: <strong>{demo.title}</strong></p>
-          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} د.ع</strong></p>
+          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</strong></p>
           <div style={{ lineHeight: 2, background: "#101114", padding: 16, borderRadius: 8 }}>
             <p>بنك الرافدين</p><p>رقم الحساب: IQ98 8000 1234 5678 9012</p><p>المستفيد: BACKSTAGE</p>
           </div>
@@ -91,7 +91,7 @@ export default async function PaymentPage({ params, searchParams }: {
         <h1>الدفع اليدوي</h1>
         <p>رقم الحجز: <code dir="ltr">{id}</code></p>
         <p>موعد العرض: <strong>{String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</strong></p>
-        <p>المبلغ المستحق: <strong style={{ color: "var(--gold)" }}>{Number(booking.totalAmount).toLocaleString("ar")} د.ع</strong></p>
+        <p>المبلغ المستحق: <strong style={{ color: "var(--gold)" }}>{Number(booking.totalAmount).toLocaleString("ar")} جنيه</strong></p>
         {["PENDING_PAYMENT", "REJECTED"].includes(booking.status) ? (
           <PaymentUploadForm bookingId={id} />
         ) : (

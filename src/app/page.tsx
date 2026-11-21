@@ -4,6 +4,8 @@ import { demoShows } from "@/lib/demo";
 import { getPublicPageLabel } from "@/lib/site-content";
 import { getShowPerformances } from "@/lib/show-performances";
 import ShowTicker from "./ShowTicker";
+import LanguageToggle from "./LanguageToggle";
+import HeroTypewriter from "./HeroTypewriter";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -48,13 +50,13 @@ export default async function Home() {
             <a href="/cast">طاقم العمل</a>
             {pages.map((page) => <a href={`/pages/${encodeURIComponent(String(page.slug))}`} key={page._id.toString()}>{getPublicPageLabel(String(page.title), String(page.slug))}</a>)}
             <a href="/bookings">حجوزاتي</a>
+            <LanguageToggle />
           </nav>
         </div>
       </header>
       <section className="public-hero">
         <div className="public-hero-content container">
-          <h1>كل حكاية عظيمة<br /><em>تبدأ من هنا</em></h1>
-          <p>ليالٍ من الفن والحكايات الحيّة. اكتشف عروضنا القادمة واحجز مقعدك في قلب المسرح.</p>
+          <HeroTypewriter />
           <a className="public-cta" href="#shows">اكتشف العروض <span aria-hidden="true">←</span></a>
           <div className="public-hero-note"><span>01</span><span className="public-note-line" /> BACKSTAGE THEATRE</div>
         </div>

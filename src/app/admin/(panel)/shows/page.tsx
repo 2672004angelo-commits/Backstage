@@ -20,7 +20,7 @@ export default async function ShowsAdmin() {
             <article className="card admin-show-list-item" key={show._id}>
               <strong>{show.title}</strong>
               <p>{performances.map((performance) => `${performance.date} ${performance.time}`).join(" · ")} — {show.venue}</p>
-              <p style={{ color: "var(--gold)" }}>{show.price.toLocaleString("ar")} د.ع · سعة {show.capacity} لكل ليلة</p>
+              <p style={{ color: "var(--gold)" }}>{show.price.toLocaleString("ar")} جنيه · سعة {show.capacity} لكل ليلة</p>
             </article>
           );
         })}
@@ -47,7 +47,7 @@ export default async function ShowsAdmin() {
               <div>
                 <strong>{String(show.title)}</strong>
                 <p>{performances.map((performance) => `${performance.date} ${performance.time}${performance.open ? "" : " (مغلق)"}`).join(" · ")} — {String(show.venue)}</p>
-                <p>{performances.length} ليالٍ · سعة {Number(show.capacity)} لكل ليلة · {Number(show.price).toLocaleString("ar")} د.ع للتذكرة</p>
+                <p>{performances.length} ليالٍ · سعة {Number(show.capacity)} لكل ليلة · {Number(show.price).toLocaleString("ar")} جنيه للتذكرة</p>
               </div>
               <details className="admin-show-edit">
                 <summary>تعديل بيانات العرض والكاست</summary>

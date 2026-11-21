@@ -22,7 +22,7 @@ export async function sendBookingPush(
 ) {
   if (!configureWebPush()) return;
   const subscriptions = await db.collection("pushSubscriptions")
-    .find({ bookingId })
+    .find({ bookingIds: bookingId })
     .toArray();
   await Promise.allSettled(subscriptions.map(async (subscription) => {
     try {

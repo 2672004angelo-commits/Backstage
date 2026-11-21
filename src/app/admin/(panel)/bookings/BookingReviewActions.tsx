@@ -7,6 +7,7 @@ type ReviewAction = "approve" | "reject";
 export default function BookingReviewActions({ bookingId, approved = false }: { bookingId: string; approved?: boolean }) {
   const [pendingAction, setPendingAction] = useState<ReviewAction | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function submitAction(action: ReviewAction) {
     setError("");
@@ -29,12 +30,18 @@ export default function BookingReviewActions({ bookingId, approved = false }: { 
         body: JSON.stringify({ action, ...(reason ? { reason } : {}) }),
       });
       if (!response.ok) {
+        const data = await response.json().catch(() => null);
         setError(response.status === 401
           ? "انتهت صلاحية الجلسة. سجّل الدخول مرة أخرى."
-          : `تعذر تحديث حالة الدفع (${response.status}).`);
+          : data?.error === "TICKET_ISSUANCE_INCOMPLETE"
+            ? "تم اعتماد الدفع، لكن إصدار التذاكر غير مكتمل. اضغط «استكمال إصدار التذكرة» للمحاولة مرة أخرى."
+            : `تعذر تحديث حالة الدفع (${response.status}).`);
         return;
       }
-      window.location.reload();
+      setSuccess(action === "approve"
+        ? "تم اعتماد التحويل وإصدار التذاكرة بنجاح."
+        : "تم رفض إثبات التحويل وإرسال سبب الرفض.");
+      window.setTimeout(() => window.location.reload(), 900);
     } catch {
       setError("تعذر الاتصال بالخادم. حاول مرة أخرى.");
     } finally {
@@ -53,6 +60,7 @@ export default function BookingReviewActions({ bookingId, approved = false }: { 
         </button>}
       </div>
       {error && <p className="admin-action-error" role="alert">{error}</p>}
+      {success && <p className="admin-action-success" role="status" aria-live="polite">{success}</p>}
     </div>
   );
 }

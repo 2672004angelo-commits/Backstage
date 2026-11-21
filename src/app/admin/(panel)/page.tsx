@@ -107,7 +107,7 @@ export default async function AdminDashboard() {
       { label: "الحجوزات المرفوضة", value: 18, description: "طلبات لم يتم اعتمادها", icon: "×", tone: "red" },
       { label: "إجمالي التذاكر", value: 342, description: "تذاكر صادرة للعروض", icon: "▣", tone: "blue" },
       { label: "التذاكر المدخلة", value: 87, description: "تم التحقق منها عند الدخول", icon: "↪", tone: "purple" },
-      { label: "الإيراد", value: "12,450,000 د.ع", description: "من الحجوزات المعتمدة", icon: "د.ع", tone: "teal" },
+      { label: "الإيراد", value: "12,450,000 جنيه", description: "من الحجوزات المعتمدة", icon: "جنيه", tone: "teal" },
     ];
     return <DashboardOverview metrics={metrics} demoMode />;
   }
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
     { label: "الحجوزات المرفوضة", value: rejected, description: "طلبات لم يتم اعتمادها", icon: "×", tone: "red" },
     { label: "إجمالي التذاكر", value: tickets, description: "تذاكر صادرة للعروض", icon: "▣", tone: "blue" },
     { label: "التذاكر المدخلة", value: checkins, description: "تم التحقق منها عند الدخول", icon: "↪", tone: "purple" },
-    { label: "الإيراد", value: `${Number(revenueResult?.total || 0).toLocaleString("ar")} د.ع`, description: "من الحجوزات المعتمدة", icon: "د.ع", tone: "teal" },
+    { label: "الإيراد", value: `${Number(revenueResult?.total || 0).toLocaleString("ar")} جنيه`, description: "من الحجوزات المعتمدة", icon: "جنيه", tone: "teal" },
   ];
   return <DashboardOverview metrics={metrics} />;
 }

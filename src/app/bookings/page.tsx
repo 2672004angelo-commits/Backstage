@@ -22,7 +22,7 @@ export default async function MyBookings() {
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <strong>{booking.show}</strong><span style={{ color: "var(--gold)" }}>{booking.id}</span>
               </div>
-              <p>{booking.fullName} · {booking.quantity} تذاكر · {booking.totalAmount.toLocaleString("ar")} د.ع</p>
+              <p>{booking.fullName} · {booking.quantity} تذاكر · {booking.totalAmount.toLocaleString("ar")} جنيه</p>
               <p>الحالة: <strong>{booking.status}</strong></p>
             </article>
           ))}
