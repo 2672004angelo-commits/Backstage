@@ -3,6 +3,8 @@ import { ObjectId } from "mongodb";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { requireRole } from "@/lib/auth";
 import { deleteFile } from "@/lib/gridfs";
+import { TICKET_IMAGE_VERSION } from "@/lib/ticket";
+import { regenerateTicketImage } from "@/lib/ticket-image";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -27,15 +29,49 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   } catch {
     return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
   }
-  if (!["ACTIVE", "CANCELLED"].includes(String(body.status))) {
-    return NextResponse.json({ error: "INVALID_STATUS" }, { status: 400 });
-  }
-
   const db = await getDb();
   const ticketId = new ObjectId(id);
   const ticket = await db.collection("tickets").findOne({ _id: ticketId });
   if (!ticket) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   if (ticket.checkedIn) return NextResponse.json({ error: "TICKET_ALREADY_USED" }, { status: 409 });
+
+  if (body.action === "regenerate_image") {
+    let result: Awaited<ReturnType<typeof regenerateTicketImage>>;
+    try {
+      result = await regenerateTicketImage(db, ticketId, process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      if (["TICKET_DATA_INCOMPLETE", "BOOKING_NOT_FOUND", "INVALID_FILE_REFERENCE", "TICKET_ALREADY_USED"].includes(code)) {
+        return NextResponse.json({ error: code }, { status: 409 });
+      }
+      throw error;
+    }
+    if (!result.updated) {
+      return NextResponse.json({ error: "TICKET_CHANGED" }, { status: 409 });
+    }
+    await db.collection("auditLogs").insertOne({
+      action: "TICKET_IMAGE_REGENERATED",
+      ticketId,
+      bookingId: ticket.bookingId,
+      actor: session.id,
+      createdAt: new Date(),
+    });
+    if (result.oldFileCleanupFailed) {
+      await db.collection("auditLogs").insertOne({
+        action: "TICKET_IMAGE_CLEANUP_FAILED",
+        ticketId,
+        fileId: ticket.ticketImageFileId,
+        actor: session.id,
+        createdAt: new Date(),
+      });
+      return NextResponse.json({ error: "TICKET_IMAGE_UPDATED_CLEANUP_FAILED" }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, imageVersion: TICKET_IMAGE_VERSION });
+  }
+
+  if (!["ACTIVE", "CANCELLED"].includes(String(body.status))) {
+    return NextResponse.json({ error: "INVALID_STATUS" }, { status: 400 });
+  }
   const updated = await db.collection("tickets").updateOne(
     { _id: ticketId, checkedIn: { $ne: true } },
     { $set: { status: body.status, updatedAt: new Date() } },

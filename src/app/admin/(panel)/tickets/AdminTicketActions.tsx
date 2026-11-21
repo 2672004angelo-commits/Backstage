@@ -38,6 +38,30 @@ export default function AdminTicketActions({
     }
   }
 
+  async function regenerateImage() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/admin/tickets/${encodeURIComponent(ticketId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "regenerate_image" }),
+      });
+      if (!response.ok) {
+        setError(response.status === 409
+          ? "تعذر إنشاء الصورة؛ تحقق من بيانات التذكرة أو أنها لم تُستخدم."
+          : `تعذر إنشاء صورة التذكرة (${response.status}).`);
+        return;
+      }
+      window.location.reload();
+    } catch {
+      setError("تعذر الاتصال بالخادم. حاول مرة أخرى.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function remove() {
     if (busy || !window.confirm("سيتم حذف نسخة التذكرة نهائيًا. هل تريد المتابعة؟")) return;
     setBusy(true);
@@ -61,6 +85,9 @@ export default function AdminTicketActions({
   if (checkedIn) return <p className="admin-ticket-locked">لا يمكن تعديل أو حذف تذكرة تم استخدامها.</p>;
   return (
     <div className="admin-record-actions">
+      <button className="admin-add-cast" type="button" disabled={busy} onClick={() => void regenerateImage()}>
+        {busy ? "جارٍ التحديث..." : "إعادة إنشاء صورة التذكرة"}
+      </button>
       <button className="admin-add-cast" type="button" disabled={busy} onClick={() => void updateStatus(status === "CANCELLED" ? "ACTIVE" : "CANCELLED")}>
         {busy ? "جارٍ التحديث..." : status === "CANCELLED" ? "إعادة تفعيل التذكرة" : "إلغاء التذكرة"}
       </button>

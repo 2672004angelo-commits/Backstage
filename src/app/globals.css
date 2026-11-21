@@ -700,20 +700,6 @@ button, input, textarea, select { font: inherit; }
 .admin-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 20px; }
 .admin-pagination > span { color: #c9c4b8; font-size: 12px; }
 .admin-pagination .btn { min-height: 36px; font-size: 11px; }
-.booking-reminder-modal {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-  padding: 16px;
-  border: 1px solid rgba(211,177,109,.25);
-  border-radius: 12px;
-  background: rgba(28,24,27,.98);
-  box-shadow: 0 14px 36px rgba(0,0,0,.28);
-  animation: backstage-reveal .35s ease both;
-}
-.booking-reminder-modal strong { color: #eddbab; }
-.booking-reminder-modal p { margin: 0; color: #bfb5a6; line-height: 1.7; }
-.booking-reminder-modal > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .booking-reminder-later { border-color: #4b4545; background: #252326; }
 .payment-instructions { display: grid; gap: 12px; margin: 18px 0; padding: 16px; border-color: rgba(211,177,109,.28); background: rgba(17,18,22,.64); }
 .payment-instructions h2 { margin: 0; color: #eddbab; font-size: 15px; }
@@ -1304,6 +1290,8 @@ button, input, textarea, select { font: inherit; }
 .public-booking-form .btn { width: 100%; margin-top: 2px; }
 .public-booking-field { display: grid; gap: 7px; color: #ded3c2; font-size: 12px; font-weight: 600; }
 .public-booking-note { margin: 0; color: #aa9d8c; font-size: 11px; line-height: 1.8; }
+.public-booking-notification { display: flex; align-items: flex-start; gap: 10px; color: #d3c7b5; font-size: 12px; line-height: 1.8; }
+.public-booking-notification input { flex: 0 0 auto; width: 17px; height: 17px; margin: 2px 0 0; accent-color: #c3a168; }
 .public-booking-closed { padding: 18px; border: 1px solid rgba(211,137,129,.2); border-radius: 10px; color: #dba39b; background: rgba(90,35,39,.14); }
 .public-transaction-title { margin: 8px 0 20px; color: #f0e5d3; font: 500 clamp(30px, 6vw, 42px)/1.25 Georgia, "Times New Roman", serif; }
 .public-transaction-intro { margin: 0 0 18px; color: #b7aa97; font-size: 13px; line-height: 1.9; }

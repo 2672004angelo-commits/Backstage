@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { requireRole } from "@/lib/auth";
-import { qrToken, nextTicketId, makeTicketPng } from "@/lib/ticket";
+import { qrToken, nextTicketId, makeTicketPng, TICKET_IMAGE_VERSION } from "@/lib/ticket";
 import { deleteFile, uploadFile } from "@/lib/gridfs";
 import { sendBookingPush } from "@/lib/web-push";
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         venue: booking.showSnapshot.venue,
         ticketId: code,
         qrToken: token,
-        appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        appUrl: process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin,
       });
       const ticketFileId = await uploadFile(png, `ticket-${code.replace(/[^A-Z0-9-]/g, "-")}.png`, "image/png", {
         purpose: "ticket",
@@ -134,6 +134,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         invitationCode: code,
         qrToken: token,
         ticketImageFileId: ticketFileId,
+        imageVersion: TICKET_IMAGE_VERSION,
         ticketIndex: i,
         status: "ACTIVE",
         checkedIn: false,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
-import { createTicketAccessToken } from "@/lib/ticket";
+import { createTicketAccessToken, TICKET_IMAGE_VERSION } from "@/lib/ticket";
 import { displayBookingNumber } from "@/lib/booking-number";
+import { regenerateTicketImage } from "@/lib/ticket-image";
 
 export async function POST(request: NextRequest) {
   if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
@@ -32,6 +33,36 @@ export async function POST(request: NextRequest) {
     const accessToken = tickets.length
       ? await createTicketAccessToken(booking._id.toString())
       : "";
+    const ticketImages = [];
+    for (const ticket of tickets) {
+      let fileId = ticket.ticketImageFileId;
+      if (ticket.imageVersion !== TICKET_IMAGE_VERSION || !fileId) {
+        const regeneration = await regenerateTicketImage(
+          db,
+          ticket._id,
+          process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin,
+          {
+            onlyIfOutdated: Boolean(fileId && ticket.imageVersion != null),
+            allowCheckedIn: true,
+          },
+        );
+        fileId = regeneration.fileId;
+        if (regeneration.updated) {
+          await db.collection("auditLogs").insertOne({
+            action: "TICKET_IMAGE_AUTO_REGENERATED",
+            ticketId: ticket._id,
+            bookingId: booking._id,
+            actor: "system",
+            createdAt: new Date(),
+          });
+        }
+      }
+      if (!fileId || !ObjectId.isValid(String(fileId))) throw new Error("TICKET_IMAGE_UNAVAILABLE");
+      ticketImages.push({
+        ticketId: String(ticket.ticketId),
+        imageUrl: `/api/files/${String(fileId)}?access=${encodeURIComponent(accessToken)}`,
+      });
+    }
     bookingResults.push({
       id: booking._id.toString(),
       bookingNumber: displayBookingNumber(booking._id.toString(), booking.bookingNumber),
@@ -42,10 +73,7 @@ export async function POST(request: NextRequest) {
       fullName: String(booking.fullName || ""),
       quantity: Number(booking.quantity),
       rejectionReason: booking.rejectionReason ? String(booking.rejectionReason) : undefined,
-      tickets: tickets.map((ticket) => ({
-        ticketId: String(ticket.ticketId),
-        imageUrl: `/api/files/${ticket.ticketImageFileId}?access=${encodeURIComponent(accessToken)}`,
-      })),
+      tickets: ticketImages,
     });
   }
   return NextResponse.json({

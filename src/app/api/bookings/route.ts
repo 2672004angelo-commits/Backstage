@@ -5,9 +5,18 @@ import { ObjectId } from "mongodb";
 import { getShowPerformances } from "@/lib/show-performances";
 import { nextBookingNumber } from "@/lib/booking-number";
 import { bookingContactQuery, performanceBookingQuery } from "@/lib/booking-lookup";
+import { parsePushSubscription, pushSubscriptionKey } from "@/lib/push-subscription";
+import { isWebPushConfigured } from "@/lib/web-push";
 
 export async function POST(request: NextRequest) {
   if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
+  if (
+    !isWebPushConfigured()
+    || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY !== process.env.VAPID_PUBLIC_KEY
+  ) {
+    return NextResponse.json({ error: "PUSH_NOT_CONFIGURED" }, { status: 503 });
+  }
   const contentType = request.headers.get("content-type") || "";
   let data: Record<string, unknown>;
   if (contentType.includes("application/json")) {
@@ -16,6 +25,13 @@ export async function POST(request: NextRequest) {
   } else {
     const form = await request.formData();
     data = Object.fromEntries(form.entries());
+  }
+  if (data.notificationConsent !== true) {
+    return NextResponse.json({ error: "PUSH_CONSENT_REQUIRED" }, { status: 400 });
+  }
+  const pushSubscription = parsePushSubscription(data.pushSubscription);
+  if (!pushSubscription) {
+    return NextResponse.json({ error: "PUSH_SUBSCRIPTION_REQUIRED" }, { status: 400 });
   }
   data.quantity = Number(data.quantity);
   const parsed = bookingSchema.safeParse(data);
@@ -95,6 +111,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "BOOKING_ALREADY_EXISTS" }, { status: 409 });
     }
     throw error;
+  }
+  const subscriptionKey = pushSubscriptionKey(mobile, email || "", pushSubscription.endpoint);
+  try {
+    await db.collection("pushSubscriptions").updateOne(
+      { subscriptionKey },
+      {
+        $set: {
+          mobile,
+          subscriptionKey,
+          endpoint: pushSubscription.endpoint,
+          subscription: pushSubscription,
+          updatedAt: new Date(),
+        },
+        $addToSet: { bookingIds: insertedId.toString() },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true },
+    );
+  } catch (error) {
+    console.error("BOOKING_PUSH_SUBSCRIBE_FAILED", error instanceof Error ? error.name : "UnknownError");
+    try {
+      const cleanup = await db.collection("bookings").deleteOne({ _id: insertedId, status: "PENDING_PAYMENT" });
+      if (!cleanup.deletedCount) console.error("BOOKING_CLEANUP_MISSED_AFTER_PUSH_ERROR", insertedId.toString());
+    } catch (cleanupError) {
+      console.error("FAILED_BOOKING_CLEANUP_AFTER_PUSH_ERROR", cleanupError instanceof Error ? cleanupError.name : "UnknownError");
+    }
+    return NextResponse.json({ error: "PUSH_SUBSCRIPTION_FAILED" }, { status: 503 });
   }
   if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
     return NextResponse.redirect(new URL(`/payment/${insertedId}`, request.url));

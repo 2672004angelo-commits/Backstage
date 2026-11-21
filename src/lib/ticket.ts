@@ -7,6 +7,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { getSecret } from "@/lib/auth";
 import fs from "fs";
 
+export const TICKET_IMAGE_VERSION = 3;
+
 export async function nextTicketId(db: Db) {
   const counter = await db.collection<{ _id: string; value: number }>("counters").findOneAndUpdate(
     { _id: "ticketSequence" },
@@ -57,12 +59,11 @@ export async function makeTicketPng(input: {
   const escape = (value: string) => value.replace(/[<>&"]/g, (char) =>
     ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[char] || char);
   const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansArabic.ttf");
-  const arabicFont = fs.existsSync(fontPath)
-    ? fs.readFileSync(fontPath).toString("base64")
-    : "";
+  if (!fs.existsSync(fontPath)) throw new Error("TICKET_FONT_NOT_FOUND");
+  const arabicFont = fs.readFileSync(fontPath).toString("base64");
   const svg = `<svg width="1200" height="1800" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      ${arabicFont ? `<style>@font-face { font-family: "Noto Sans Arabic"; src: url("data:font/ttf;base64,${arabicFont}") format("truetype"); font-weight: 100 900; }</style>` : ""}
+      <style>@font-face { font-family: "Noto Sans Arabic"; src: url("data:font/ttf;base64,${arabicFont}") format("truetype"); font-weight: 100 900; }</style>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#24191d"/>
         <stop offset=".52" stop-color="#151318"/>
