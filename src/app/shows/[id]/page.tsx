@@ -3,7 +3,7 @@ import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { notFound } from "next/navigation";
 import { demoShows } from "@/lib/demo";
-import { getShowPerformances } from "@/lib/show-performances";
+import { formatPerformanceTime, getShowPerformances } from "@/lib/show-performances";
 import LanguageToggle from "../../LanguageToggle";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -60,7 +60,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
             {performances.map((performance, index) => (
               <div className="public-performance-card" key={performance.id}>
                 <strong>الليلة {index + 1}</strong>
-                <span>{performance.date} · {performance.time}</span>
+                <span>{performance.date} · {formatPerformanceTime(performance.time)}</span>
                 {performance.open
                   ? <a className="btn" href={`/booking/${id}?performanceId=${encodeURIComponent(performance.id)}`}>احجز هذه الليلة</a>
                   : <span className="public-performance-closed">الحجز مغلق</span>}
@@ -93,7 +93,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
             {performances.map((performance, index) => (
               <div className="public-performance-card" key={performance.id}>
                 <strong>الليلة {index + 1}</strong>
-                <span>{performance.date} · {performance.time}</span>
+                <span>{performance.date} · {formatPerformanceTime(performance.time)}</span>
                 {performance.open
                   ? <a className="btn" href={`/booking/${id}?performanceId=${encodeURIComponent(performance.id)}`}>احجز هذه الليلة</a>
                   : <span className="public-performance-closed">الحجز مغلق</span>}
@@ -124,7 +124,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
           {performances.map((performance, index) => (
             <div className="public-performance-card" key={performance.id}>
               <strong>الليلة {index + 1}</strong>
-              <span>{performance.date} · {performance.time}</span>
+              <span>{performance.date} · {formatPerformanceTime(performance.time)}</span>
               {performance.open
                 ? <a className="btn" href={`/booking/${id}?performanceId=${encodeURIComponent(performance.id)}`}>احجز هذه الليلة</a>
                 : <span className="public-performance-closed">الحجز مغلق</span>}

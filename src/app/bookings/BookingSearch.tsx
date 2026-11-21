@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { formatPerformanceTime } from "@/lib/show-performances";
 
 type SearchResult = {
   id: string;
@@ -164,7 +165,7 @@ export default function BookingSearch() {
               <p>الاسم: <strong>{result.fullName}</strong></p>
               <p>العرض: <strong>{result.show}</strong></p>
               {(result.performanceDate || result.performanceTime) && (
-                <p>موعد العرض: <strong>{result.performanceDate} {result.performanceTime}</strong></p>
+                <p>موعد العرض: <strong>{result.performanceDate} {result.performanceTime ? formatPerformanceTime(result.performanceTime) : ""}</strong></p>
               )}
               <p>الحالة: <strong>{statusLabels[result.status] || result.status}</strong></p>
               {result.rejectionReason && <p>سبب الرفض: {result.rejectionReason}</p>}

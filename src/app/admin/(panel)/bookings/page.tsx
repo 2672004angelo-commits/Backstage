@@ -6,7 +6,7 @@ import BookingReviewActions from "./BookingReviewActions";
 import AdminBookingActions from "./AdminBookingActions";
 import PaymentRecordActions from "./PaymentRecordActions";
 import AdminPageHeader from "../AdminPageHeader";
-import { getShowPerformances } from "@/lib/show-performances";
+import { formatPerformanceTime, getShowPerformances } from "@/lib/show-performances";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +56,7 @@ export default async function AdminBookings() {
         {bookings.map((booking) => (
           <article className="card admin-booking-card" key={booking._id.toString()}>
             <strong>{booking.fullName as string}</strong>
-            <p>{String(booking.showSnapshot?.title || "العرض")} · {String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</p>
+            <p>{String(booking.showSnapshot?.title || "العرض")} · {String(booking.showSnapshot?.date || "")} · {formatPerformanceTime(String(booking.showSnapshot?.time || ""))}</p>
             <p>{booking.mobile as string} | {String(booking.quantity)} تذاكر | {Number(booking.totalAmount).toLocaleString("ar")} جنيه</p>
             <p>الحالة: <b>{booking.status as string}</b></p>
             {paymentsByBooking.get(booking._id.toString())?.map((payment, index, records) => (

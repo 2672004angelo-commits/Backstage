@@ -6,6 +6,7 @@ import { demoShows } from "@/lib/demo";
 import PaymentUploadForm from "./PaymentUploadForm";
 import LanguageToggle from "../../LanguageToggle";
 import { displayBookingNumber } from "@/lib/booking-number";
+import { formatPerformanceTime } from "@/lib/show-performances";
 
 function PaymentInstructions() {
   return (
@@ -116,7 +117,7 @@ export default async function PaymentPage({ params, searchParams }: {
       <section className="card public-transaction-card">
         <div className="public-payment-summary">
           <p><span>رقم الحجز</span><strong><code dir="ltr">{displayBookingNumber(id, booking.bookingNumber)}</code></strong></p>
-          <p><span>موعد العرض</span><strong>{String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</strong></p>
+          <p><span>موعد العرض</span><strong>{String(booking.showSnapshot?.date || "")} · {formatPerformanceTime(String(booking.showSnapshot?.time || ""))}</strong></p>
           <p><span>المبلغ المستحق</span><strong className="public-payment-amount">{Number(booking.totalAmount).toLocaleString("ar")} جنيه</strong></p>
         </div>
         {["PENDING_PAYMENT", "REJECTED"].includes(booking.status) ? (

@@ -6,8 +6,9 @@ import type { Db } from "mongodb";
 import { SignJWT, jwtVerify } from "jose";
 import { getSecret } from "@/lib/auth";
 import fs from "fs";
+import { formatPerformanceTime } from "@/lib/show-performances";
 
-export const TICKET_IMAGE_VERSION = 3;
+export const TICKET_IMAGE_VERSION = 5;
 
 export async function nextTicketId(db: Db) {
   const counter = await db.collection<{ _id: string; value: number }>("counters").findOneAndUpdate(
@@ -61,6 +62,7 @@ export async function makeTicketPng(input: {
   const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansArabic.ttf");
   if (!fs.existsSync(fontPath)) throw new Error("TICKET_FONT_NOT_FOUND");
   const arabicFont = fs.readFileSync(fontPath).toString("base64");
+  const displayTime = formatPerformanceTime(input.time);
   const svg = `<svg width="1200" height="1800" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <style>@font-face { font-family: "Noto Sans Arabic"; src: url("data:font/ttf;base64,${arabicFont}") format("truetype"); font-weight: 100 900; }</style>
@@ -97,7 +99,7 @@ export async function makeTicketPng(input: {
     <text x="530" y="945" text-anchor="end" fill="#fffaf0" font-family="Noto Sans Arabic,Arial" font-size="42" font-weight="700">${escape(input.date)}</text>
     <rect x="620" y="825" width="470" height="170" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
     <text x="1040" y="880" text-anchor="end" fill="#c9b57f" font-family="Noto Sans Arabic,Arial" font-size="30">الموعد</text>
-    <text x="1040" y="945" text-anchor="end" fill="#fffaf0" font-family="Noto Sans Arabic,Arial" font-size="42" font-weight="700">${escape(input.time)}</text>
+    <text x="1040" y="945" text-anchor="end" fill="#fffaf0" font-family="Noto Sans Arabic,Arial" font-size="42" font-weight="700">${escape(displayTime)}</text>
     <rect x="110" y="1020" width="980" height="150" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
     <text x="1040" y="1074" text-anchor="end" fill="#c9b57f" font-family="Noto Sans Arabic,Arial" font-size="30">المكان</text>
     <text x="1040" y="1132" text-anchor="start" fill="#fffaf0" font-family="Noto Sans Arabic,Arial" font-size="42" font-weight="700" direction="rtl">${escape(input.venue)}</text>

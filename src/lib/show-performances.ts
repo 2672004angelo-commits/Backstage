@@ -5,6 +5,15 @@ export type ShowPerformance = {
   open: boolean;
 };
 
+export function formatPerformanceTime(value: string) {
+  const match = /^(\d{1,2}):([0-5]\d)(?::[0-5]\d)?$/.exec(value.trim());
+  if (!match) return value;
+  const hour = Number(match[1]);
+  if (hour > 23) return value;
+  const period = hour < 12 ? "صباحًا" : "مساءً";
+  return `${hour % 12 || 12}:${match[2]} ${period}`;
+}
+
 type ShowScheduleSource = {
   performances?: unknown;
   date?: unknown;

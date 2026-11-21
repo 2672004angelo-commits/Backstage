@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { getShowPerformances } from "@/lib/show-performances";
+import { formatPerformanceTime, getShowPerformances } from "@/lib/show-performances";
 
 type Performance = ReturnType<typeof getShowPerformances>[number];
 
@@ -161,7 +161,7 @@ export default function BookingForm({
           <option value="" disabled>حدد التاريخ والوقت</option>
           {performances.map((performance, index) => (
             <option key={performance.id} value={performance.id} disabled={!performance.open}>
-              {`الليلة ${index + 1} — ${performance.date}، ${performance.time}${performance.open ? "" : " (الحجز مغلق)"}`}
+              {`الليلة ${index + 1} — ${performance.date}، ${formatPerformanceTime(performance.time)}${performance.open ? "" : " (الحجز مغلق)"}`}
             </option>
           ))}
         </select>

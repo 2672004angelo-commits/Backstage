@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { ShowPerformance } from "@/lib/show-performances";
+import { formatPerformanceTime, type ShowPerformance } from "@/lib/show-performances";
 
 const errorMessages: Record<string, string> = {
   BOOKING_ALREADY_EXISTS: "للضيف حجز آخر في الليلة المختارة.",
@@ -102,7 +102,7 @@ export default function AdminBookingActions({
             <select className="field" name="performanceId" defaultValue={performanceId} required>
               {performances.map((performance, index) => (
                 <option key={performance.id} value={performance.id} disabled={!performance.open && performance.id !== performanceId}>
-                  {`الليلة ${index + 1} — ${performance.date}، ${performance.time}${performance.open ? "" : " (مغلقة)"}`}
+                  {`الليلة ${index + 1} — ${performance.date}، ${formatPerformanceTime(performance.time)}${performance.open ? "" : " (مغلقة)"}`}
                 </option>
               ))}
             </select>
