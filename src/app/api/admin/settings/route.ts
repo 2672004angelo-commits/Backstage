@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getDb, isMongoConfigured } from "@/lib/mongodb";
+import { requireRole } from "@/lib/auth";
+
+export async function POST(request: NextRequest) {
+  if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
+  try { await requireRole(["admin"]); } catch { return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 }); }
+  let body: Record<string, unknown>;
+  try { body = await request.json(); }
+  catch { return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 }); }
+  const db = await getDb();
+  const key = String(body.key || "");
+  if (key === "payment") {
+    const bankName = typeof body.bankName === "string" ? body.bankName.trim().slice(0, 120) : "";
+    const accountNumber = typeof body.accountNumber === "string" ? body.accountNumber.trim().slice(0, 120) : "";
+    const accountHolder = typeof body.accountHolder === "string" ? body.accountHolder.trim().slice(0, 120) : "";
+    await db.collection("settings").updateOne(
+      { key },
+      { $set: { key, bankName, accountNumber, accountHolder, updatedAt: new Date() } },
+      { upsert: true },
+    );
+  } else if (key === "public") {
+    if (!Array.isArray(body.socialLinks) || body.socialLinks.length > 10) {
+      return NextResponse.json({ error: "INVALID_SOCIAL_LINKS" }, { status: 400 });
+    }
+    const socialLinks = [];
+    for (const item of body.socialLinks) {
+      if (!item || typeof item !== "object") return NextResponse.json({ error: "INVALID_SOCIAL_LINK" }, { status: 400 });
+      const link = item as Record<string, unknown>;
+      const label = typeof link.label === "string" ? link.label.trim() : "";
+      const value = typeof link.url === "string" ? link.url.trim() : "";
+      let url: URL;
+      try { url = new URL(value); }
+      catch { return NextResponse.json({ error: "INVALID_SOCIAL_URL" }, { status: 400 }); }
+      if (!label || label.length > 40 || value.length > 500 || url.protocol !== "https:") {
+        return NextResponse.json({ error: "INVALID_SOCIAL_LINK" }, { status: 400 });
+      }
+      socialLinks.push({ label, url: url.toString() });
+    }
+    await db.collection("settings").updateOne(
+      { key },
+      { $set: { key, socialLinks, updatedAt: new Date() } },
+      { upsert: true },
+    );
+  } else {
+    return NextResponse.json({ error: "INVALID_SETTINGS_KEY" }, { status: 400 });
+  }
+  return NextResponse.json({ ok: true });
+}

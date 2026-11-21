@@ -1,0 +1,12 @@
+{
+  "name": "BACKSTAGE",
+  "short_name": "BACKSTAGE",
+  "description": "حجز العروض وتتبع التذاكر في BACKSTAGE",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#171718",
+  "theme_color": "#171718",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": []
+}
