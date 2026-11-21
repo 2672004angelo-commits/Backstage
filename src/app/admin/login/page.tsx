@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import LanguageToggle from "../../LanguageToggle";
 
 export default function AdminLogin() {
   const [error, setError] = useState("");
@@ -27,6 +28,7 @@ export default function AdminLogin() {
         </div>
       </div>
       <form className="admin-login-card card" onSubmit={submit}>
+        <div className="admin-login-language"><LanguageToggle /></div>
         <div className="admin-login-brand" aria-label="BACKSTAGE">
           <span className="admin-login-mark" aria-hidden="true">B</span>
           <span>BACKSTAGE</span>

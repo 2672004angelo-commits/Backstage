@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import PaymentSettingsForm from "./PaymentSettingsForm";
 import SocialLinksForm from "./SocialLinksForm";
+import AdminSettingDeleteButton from "./AdminSettingDeleteButton";
 import AdminPageHeader from "../AdminPageHeader";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,9 @@ export default async function SettingsAdmin() {
         accountNumber: String(payment?.accountNumber || ""),
         accountHolder: String(payment?.accountHolder || ""),
       }} />
+      {payment && <AdminSettingDeleteButton settingKey="payment" label="إعدادات الدفع" />}
       <SocialLinksForm initialLinks={socialLinks} />
+      {publicSettings && <AdminSettingDeleteButton settingKey="public" label="روابط التواصل" />}
     </main>
   );
 }

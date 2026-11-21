@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { notFound } from "next/navigation";
 import { demoShows } from "@/lib/demo";
 import { getShowPerformances } from "@/lib/show-performances";
+import LanguageToggle from "../../LanguageToggle";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -44,9 +45,11 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
     if (!demo) notFound();
     const performances = getShowPerformances(demo);
     return (
-      <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
-        <a href="/" style={{ color: "var(--gold)" }}>← العودة للعروض</a>
-        <section className="card" style={{ marginTop: 24, padding: 32 }}>
+      <main className="public-ambient-page">
+        <div className="public-ambient-content">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <a className="public-back-link" href="/">← العودة للعروض</a>
+        <section className="card public-show-detail-card">
           <p style={{ color: "var(--gold)" }}>عرض مسرحي</p>
           <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{demo.title}</h1>
           <p style={{ lineHeight: 2, color: "#bbb" }}>{demo.description}</p>
@@ -65,6 +68,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
             ))}
           </section>
         </section>
+        </div>
       </main>
     );
   }
@@ -74,9 +78,11 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
     if (!demo) notFound();
     const performances = getShowPerformances(demo);
     return (
-      <main className="container" style={{ padding: "64px 0" }}>
-        <a href="/" style={{ color: "var(--gold)" }}>← العودة للعروض</a>
-        <section className="card" style={{ marginTop: 24, padding: 32 }}>
+      <main className="public-ambient-page">
+        <div className="public-ambient-content">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <a className="public-back-link" href="/">← العودة للعروض</a>
+        <section className="card public-show-detail-card">
           <p style={{ color: "var(--gold)" }}>عرض مسرحي تجريبي</p>
           <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{demo.title}</h1>
           <p style={{ lineHeight: 2, color: "#bbb" }}>{demo.description}</p>
@@ -95,15 +101,18 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
             ))}
           </section>
         </section>
+        </div>
       </main>
     );
   }
   const cast = Array.isArray(show.cast) ? show.cast : [];
   const performances = getShowPerformances(show);
   return (
-    <main className="container" style={{ padding: "64px 0" }}>
-      <a href="/" style={{ color: "var(--gold)" }}>← العودة للعروض</a>
-      <section className="card" style={{ marginTop: 24, padding: 32 }}>
+    <main className="public-ambient-page">
+      <div className="public-ambient-content">
+      <div className="public-page-locale"><LanguageToggle /></div>
+      <a className="public-back-link" href="/">← العودة للعروض</a>
+      <section className="card public-show-detail-card">
         {show.posterFileId && <img className="public-show-poster-main" src={`/api/files/${String(show.posterFileId)}`} alt={`ملصق ${String(show.title)}`} />}
         <p style={{ color: "var(--gold)" }}>عرض مسرحي</p>
         <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>{show.title as string}</h1>
@@ -136,6 +145,7 @@ export default async function ShowPage({ params }: { params: Promise<{ id: strin
           </section>
         )}
       </section>
+      </div>
     </main>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { isMongoConfigured } from "@/lib/mongodb";
 import { demoBookings } from "@/lib/demo";
 import BookingSearch from "./BookingSearch";
+import LanguageToggle from "../LanguageToggle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -13,27 +14,33 @@ export const metadata: Metadata = {
 export default async function MyBookings() {
   if (!isMongoConfigured()) {
     return (
-      <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
-        <h1>حجوزاتي</h1>
-        <p style={{ color: "#aaa" }}>أدخل رقم الحجز ورقم الهاتف للعثور على التذكرة بعد اعتماد الدفع.</p>
-        <div style={{ display: "grid", gap: 12 }}>
-          {demoBookings.map((booking) => (
-            <article className="card" key={booking.id} style={{ padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <strong>{booking.show}</strong><span style={{ color: "var(--gold)" }}>{booking.id}</span>
+      <main className="public-ambient-page">
+        <div className="public-ambient-content">
+          <div className="public-page-locale"><LanguageToggle /></div>
+          <h1 className="public-transaction-title">حجوزاتي</h1>
+          <p className="public-transaction-intro">أدخل رقم الهاتف المستخدم عند الحجز للعثور على حجوزاتك وتذاكرك بعد اعتماد الدفع.</p>
+          <div className="public-booking-list">
+            {demoBookings.map((booking) => (
+            <article className="card public-booking-summary" key={booking.id}>
+              <div className="public-booking-summary-head">
+                <strong>{booking.show}</strong><span>{booking.id}</span>
               </div>
               <p>{booking.fullName} · {booking.quantity} تذاكر · {booking.totalAmount.toLocaleString("ar")} جنيه</p>
               <p>الحالة: <strong>{booking.status}</strong></p>
             </article>
           ))}
+          </div>
         </div>
       </main>
     );
   }
   return (
-    <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
-      <h1>حجوزاتي</h1>
-      <BookingSearch />
+    <main className="public-ambient-page">
+      <div className="public-ambient-content">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <h1 className="public-transaction-title">حجوزاتي</h1>
+        <BookingSearch />
+      </div>
     </main>
   );
 }

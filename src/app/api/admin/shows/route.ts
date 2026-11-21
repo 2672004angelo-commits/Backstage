@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { requireRole } from "@/lib/auth";
-import { uploadFile } from "@/lib/gridfs";
+import { deleteFile, uploadFile } from "@/lib/gridfs";
 import { showSchema } from "@/lib/validation";
 import { legacyPerformanceId } from "@/lib/show-performances";
 
@@ -156,4 +156,62 @@ export async function POST(request: NextRequest) {
     await db.collection("shows").insertOne({ _id: showId, ...document, createdAt: new Date() });
   }
   return NextResponse.json({ id: showId.toString() }, { status: current ? 200 : 201 });
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
+  let session;
+  try { session = await requireRole(["admin"]); }
+  catch { return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 }); }
+
+  let body: Record<string, unknown>;
+  try {
+    const value: unknown = await request.json();
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
+    }
+    body = value as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
+  }
+  const id = typeof body.id === "string" ? body.id : "";
+  if (!ObjectId.isValid(id)) return NextResponse.json({ error: "INVALID_ID" }, { status: 400 });
+
+  const db = await getDb();
+  const showId = new ObjectId(id);
+  const show = await db.collection("shows").findOne({ _id: showId });
+  if (!show) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+  const bookingCount = await db.collection("bookings").countDocuments({ showId });
+  if (bookingCount) return NextResponse.json({ error: "SHOW_HAS_BOOKINGS" }, { status: 409 });
+
+  const fileIds = [
+    show.posterFileId,
+    ...(Array.isArray(show.cast) ? show.cast.map((member) => member.photoFileId) : []),
+  ].filter(Boolean).map((value) => String(value));
+  if (fileIds.some((fileId) => !ObjectId.isValid(fileId))) {
+    return NextResponse.json({ error: "INVALID_FILE_REFERENCE" }, { status: 409 });
+  }
+
+  await db.collection("shows").deleteOne({ _id: showId });
+  await db.collection("auditLogs").insertOne({
+    action: "SHOW_DELETED",
+    showId,
+    actor: session.id,
+    createdAt: new Date(),
+  });
+  const uniqueFileIds = [...new Set(fileIds)];
+  const cleanup = await Promise.allSettled(uniqueFileIds.map((fileId) => deleteFile(new ObjectId(fileId))));
+  const failedFileIds = cleanup.flatMap((result, index) => result.status === "rejected" ? [uniqueFileIds[index]] : []);
+  if (failedFileIds.length) {
+    await db.collection("auditLogs").insertOne({
+      action: "SHOW_FILE_CLEANUP_FAILED",
+      showId,
+      actor: session.id,
+      fileIds: failedFileIds,
+      createdAt: new Date(),
+    });
+    console.error("SHOW_FILE_CLEANUP_FAILED", { count: failedFileIds.length });
+    return NextResponse.json({ error: "SHOW_DELETED_FILES_CLEANUP_FAILED" }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
 }

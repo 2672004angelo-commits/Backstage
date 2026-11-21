@@ -8,6 +8,7 @@ import LanguageToggle from "../../LanguageToggle";
 const navigation = [
   { href: "/admin", label: "لوحة التحكم", icon: "◈" },
   { href: "/admin/bookings", label: "الحجوزات والدفع", icon: "▤" },
+  { href: "/admin/tickets", label: "نسخ التذاكر", icon: "◇" },
   { href: "/admin/checkin", label: "بوابة المسرح", icon: "✓" },
   { href: "/admin/shows", label: "العروض والليالي", icon: "✦" },
   { href: "/admin/content", label: "محتوى الموقع", icon: "▧" },

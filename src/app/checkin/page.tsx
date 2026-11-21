@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import LanguageToggle from "../LanguageToggle";
 
 export default function CheckinPage() {
   const [token, setToken] = useState("");
@@ -18,16 +19,19 @@ export default function CheckinPage() {
       : data.status || "INVALID");
   }
   return (
-    <main className="container" style={{ maxWidth: 680, padding: "48px 16px" }}>
-      <h1>واجهة دخول الحضور</h1>
-      <div className="card" style={{ padding: 24, display: "grid", gap: 16 }}>
-        <label>رمز التذكرة أو رمز QR
-          <input className="field" dir="ltr" placeholder="BACKSTAGE GUEST-000001" value={token} onChange={(event) => setToken(event.target.value)} />
-        </label>
-        <button className="btn" type="button" onClick={scan}>تحقق من التذكرة</button>
-        {result && <strong style={{ fontSize: 24, textAlign: "center" }}>{result}</strong>}
+    <main className="public-ambient-page">
+      <div className="public-ambient-content is-narrow">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <h1 className="public-transaction-title">واجهة دخول الحضور</h1>
+        <div className="card public-checkin-card">
+          <label>رمز التذكرة أو رمز QR
+            <input className="field" dir="ltr" placeholder="BACKSTAGE GUEST-000001" value={token} onChange={(event) => setToken(event.target.value)} />
+          </label>
+          <button className="btn" type="button" onClick={scan}>تحقق من التذكرة</button>
+          {result && <strong className="public-checkin-result">{result}</strong>}
+        </div>
+        <p className="public-transaction-intro">تتطلب هذه الواجهة دخول موظف أو مسؤول.</p>
       </div>
-      <p style={{ color: "#777", marginTop: 24 }}>تتطلب هذه الواجهة دخول موظف أو مسؤول.</p>
     </main>
   );
 }

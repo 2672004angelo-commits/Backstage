@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { getPublicPageLabel } from "@/lib/site-content";
+import PublicSiteNavigation from "../PublicSiteNavigation";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -69,13 +70,7 @@ export default async function CastPage() {
             <span className="public-brand-mark" aria-hidden="true">B</span>
             <span>BACKSTAGE</span>
           </a>
-          <nav className="public-nav" aria-label="التنقل الرئيسي">
-            <a href="/">الرئيسية</a>
-            <a href="/#shows">العروض</a>
-            <a href="/cast" aria-current="page">طاقم العمل</a>
-            {pages.map((page) => <a href={`/pages/${encodeURIComponent(page.slug)}`} key={page.id}>{page.title}</a>)}
-            <a href="/bookings">حجوزاتي</a>
-          </nav>
+          <PublicSiteNavigation pages={pages} activePath="/cast" />
         </div>
       </header>
 
@@ -100,7 +95,7 @@ export default async function CastPage() {
               </div>
               <a className="public-cast-show-link" href={`/shows/${group.showId}`}>تفاصيل العرض <span aria-hidden="true">←</span></a>
             </header>
-            <div className="public-cast-grid">
+            <div className={`public-cast-grid${group.members.length === 1 ? " is-single" : ""}`}>
               {group.members.map((member, index) => (
                 <a className="public-cast-card" href={`/shows/${group.showId}`} key={`${member.photoFileId}-${index}`}>
                   <div className="public-cast-card-image">

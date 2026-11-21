@@ -3,6 +3,8 @@ import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { bookingSchema } from "@/lib/validation";
 import { ObjectId } from "mongodb";
 import { getShowPerformances } from "@/lib/show-performances";
+import { nextBookingNumber } from "@/lib/booking-number";
+import { bookingContactQuery, performanceBookingQuery } from "@/lib/booking-lookup";
 
 export async function POST(request: NextRequest) {
   if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
@@ -35,28 +37,12 @@ export async function POST(request: NextRequest) {
 
   const mobile = parsed.data.mobile.replace(/^\+/, "");
   const email = parsed.data.email ? parsed.data.email.trim().toLowerCase() : null;
-  const contactQuery = [
-    { mobileNormalized: mobile },
-    { mobile: { $in: [mobile, `+${mobile}`] } },
-    ...(email ? [
-      { emailNormalized: email },
-      { email: { $regex: `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } },
-    ] : []),
-  ];
   const showObjectId = new ObjectId(parsed.data.showId);
-  const performanceQuery = [
-    { performanceId: performance.id },
-    {
-      performanceId: { $exists: false },
-      "showSnapshot.date": performance.date,
-      "showSnapshot.time": performance.time,
-    },
-  ];
   const existingBooking = await db.collection("bookings").findOne({
     showId: showObjectId,
     $and: [
-      { $or: performanceQuery },
-      { $or: contactQuery },
+      { $or: performanceBookingQuery(performance) },
+      { $or: bookingContactQuery(mobile, email) },
     ],
   });
   if (existingBooking) return NextResponse.json({ error: "BOOKING_ALREADY_EXISTS" }, { status: 409 });
@@ -67,7 +53,7 @@ export async function POST(request: NextRequest) {
       $match: {
         showId: showObjectId,
         status: { $in: activeStatuses },
-        $or: performanceQuery,
+        $or: performanceBookingQuery(performance),
       },
     },
     { $group: { _id: null, quantity: { $sum: "$quantity" } } },
@@ -77,8 +63,10 @@ export async function POST(request: NextRequest) {
   }
 
   let insertedId: ObjectId;
+  const bookingNumber = await nextBookingNumber(db);
   try {
     const result = await db.collection("bookings").insertOne({
+      bookingNumber,
       showId: showObjectId,
       performanceId: performance.id,
       showSnapshot: {

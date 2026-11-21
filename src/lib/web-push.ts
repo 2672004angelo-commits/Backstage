@@ -35,6 +35,9 @@ export async function sendBookingPush(
         : 0;
       if (statusCode === 404 || statusCode === 410) {
         await db.collection("pushSubscriptions").deleteOne({ _id: subscription._id });
+      } else {
+        const errorName = error instanceof Error ? error.name : "UnknownError";
+        console.error("WEB_PUSH_DELIVERY_FAILED", { statusCode, errorName });
       }
     }
   }));

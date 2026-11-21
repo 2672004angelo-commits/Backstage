@@ -1,17 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Language } from "./locale";
 
-const titleParts = ["كل حكاية عظيمة", "تبدأ من هنا"];
-const description = "ليالٍ من الفن والحكايات الحيّة. اكتشف عروضنا القادمة واحجز مقعدك في قلب المسرح.";
+const copy: Record<Language, { titleParts: [string, string]; description: string }> = {
+  ar: {
+    titleParts: ["كل حكاية عظيمة", "تبدأ من هنا"],
+    description: "ليالٍ من الفن والحكايات الحيّة. اكتشف عروضنا القادمة واحجز مقعدك في قلب المسرح.",
+  },
+  en: {
+    titleParts: ["Every great story", "starts here"],
+    description: "Nights of art and living stories. Discover our upcoming shows and reserve your seat at the heart of the stage.",
+  },
+};
 
 export default function HeroTypewriter() {
+  const [language, setLanguage] = useState<Language>("ar");
   const [firstLine, setFirstLine] = useState("");
   const [secondLine, setSecondLine] = useState("");
   const [descriptionText, setDescriptionText] = useState("");
 
   useEffect(() => {
+    const savedLanguage = window.localStorage.getItem("backstage-language");
+    setLanguage(savedLanguage === "en" ? "en" : "ar");
+    const onLanguageChange = (event: Event) => {
+      const nextLanguage = (event as CustomEvent<Language>).detail;
+      if (nextLanguage === "ar" || nextLanguage === "en") setLanguage(nextLanguage);
+    };
+    window.addEventListener("backstage-language-change", onLanguageChange);
+    return () => window.removeEventListener("backstage-language-change", onLanguageChange);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
+    const { titleParts, description } = copy[language];
     const wait = (milliseconds: number) =>
       new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 
@@ -52,7 +74,9 @@ export default function HeroTypewriter() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [language]);
+
+  const { titleParts, description } = copy[language];
 
   return (
     <>

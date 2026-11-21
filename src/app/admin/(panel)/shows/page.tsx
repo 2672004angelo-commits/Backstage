@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { demoShows } from "@/lib/demo";
 import ShowManagerForm from "./ShowManagerForm";
+import AdminShowDeleteButton from "./AdminShowDeleteButton";
 import AdminPageHeader from "../AdminPageHeader";
 import { getShowPerformances } from "@/lib/show-performances";
 
@@ -67,6 +68,7 @@ export default async function ShowsAdmin() {
                   cast,
                 }} />
               </details>
+              <AdminShowDeleteButton showId={show._id.toString()} />
             </article>
           );
         })}

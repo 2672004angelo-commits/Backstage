@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { createTicketAccessToken } from "@/lib/ticket";
+import { displayBookingNumber } from "@/lib/booking-number";
 
 export async function POST(request: NextRequest) {
   if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
@@ -26,13 +27,14 @@ export async function POST(request: NextRequest) {
   const bookingResults = [];
   for (const booking of bookings) {
     const tickets = booking.status === "APPROVED"
-      ? await db.collection("tickets").find({ bookingId: booking._id }).sort({ ticketIndex: 1 }).toArray()
+      ? await db.collection("tickets").find({ bookingId: booking._id, status: "ACTIVE" }).sort({ ticketIndex: 1 }).toArray()
       : [];
     const accessToken = tickets.length
       ? await createTicketAccessToken(booking._id.toString())
       : "";
     bookingResults.push({
       id: booking._id.toString(),
+      bookingNumber: displayBookingNumber(booking._id.toString(), booking.bookingNumber),
       status: String(booking.status),
       show: String(booking.showSnapshot?.title || "العرض"),
       performanceDate: String(booking.showSnapshot?.date || ""),

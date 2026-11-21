@@ -4,6 +4,27 @@ import { ObjectId } from "mongodb";
 import { notFound } from "next/navigation";
 import { demoShows } from "@/lib/demo";
 import PaymentUploadForm from "./PaymentUploadForm";
+import LanguageToggle from "../../LanguageToggle";
+import { displayBookingNumber } from "@/lib/booking-number";
+
+function PaymentInstructions() {
+  return (
+    <section className="card payment-instructions" aria-labelledby="payment-instructions-title">
+      <h2 id="payment-instructions-title">حوّل المبلغ إلى أحد الرقمين التاليين</h2>
+      <div className="payment-instructions-grid">
+        <div className="payment-instructions-account">
+          <span>Instapay</span>
+          <strong dir="ltr">01273176278</strong>
+        </div>
+        <div className="payment-instructions-account">
+          <span>محفظة كاش</span>
+          <strong dir="ltr">01229212293</strong>
+        </div>
+      </div>
+      <p>اختر طريقة التحويل المناسبة، ثم ارفع صورة واضحة لإثبات الدفع.</p>
+    </section>
+  );
+}
 
 export const metadata: Metadata = {
   title: "الدفع",
@@ -21,20 +42,20 @@ export default async function PaymentPage({ params, searchParams }: {
     const demo = demoShows.find((item) => item._id === id);
     if (!demo) notFound();
     return (
-      <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
-        <h1>الدفع اليدوي</h1>
-        <section className="card" style={{ padding: 28 }}>
+      <main className="public-ambient-page">
+        <div className="public-ambient-content">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <h1 className="public-transaction-title">الدفع اليدوي</h1>
+        <section className="card public-transaction-card">
           <p>عرض تجريبي: <strong>{demo.title}</strong></p>
-          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</strong></p>
-          <div style={{ lineHeight: 2, background: "#101114", padding: 16, borderRadius: 8 }}>
-            <p>بنك الرافدين</p><p>رقم الحساب: IQ98 8000 1234 5678 9012</p><p>المستفيد: BACKSTAGE</p>
-          </div>
+          <p>المبلغ المستحق: <strong className="public-payment-amount">{demo.price.toLocaleString("ar")} جنيه</strong></p>
+          <PaymentInstructions />
           {submitted ? (
-            <section style={{ marginTop: 24, textAlign: "center", border: "1px solid #c4a86a", borderRadius: 8, padding: 20 }}>
+            <section className="public-payment-confirmation">
               <h2>تم رفع إثبات الدفع بنجاح</h2><p>حجزك في وضع الانتظار للمراجعة.</p>
             </section>
           ) : (
-            <form action={`/payment/${id}?submitted=1`} method="get" style={{ display: "grid", gap: 16, marginTop: 24 }}>
+            <form action={`/payment/${id}?submitted=1`} method="get" className="public-payment-form">
               <label>طريقة التحويل
                 <select className="field" name="paymentMethod" required>
                   <option value="" disabled selected>اختر Instapay أو محفظة كاش</option>
@@ -47,6 +68,7 @@ export default async function PaymentPage({ params, searchParams }: {
             </form>
           )}
         </section>
+        </div>
       </main>
     );
   }
@@ -56,51 +78,60 @@ export default async function PaymentPage({ params, searchParams }: {
     const demo = demoShows.find((item) => item._id === id);
     if (!demo) notFound();
     return (
-      <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
-        <h1>الدفع اليدوي</h1>
-        <section className="card" style={{ padding: 28 }}>
+      <main className="public-ambient-page">
+        <div className="public-ambient-content">
+        <div className="public-page-locale"><LanguageToggle /></div>
+        <h1 className="public-transaction-title">الدفع اليدوي</h1>
+        <section className="card public-transaction-card">
           <p>عرض تجريبي: <strong>{demo.title}</strong></p>
-          <p>المبلغ المستحق: <strong style={{ color: "var(--gold)", fontSize: 24 }}>{demo.price.toLocaleString("ar")} جنيه</strong></p>
-          <div style={{ lineHeight: 2, background: "#101114", padding: 16, borderRadius: 8 }}>
-            <p>بنك الرافدين</p><p>رقم الحساب: IQ98 8000 1234 5678 9012</p><p>المستفيد: BACKSTAGE</p>
-          </div>
+          <p>المبلغ المستحق: <strong className="public-payment-amount">{demo.price.toLocaleString("ar")} جنيه</strong></p>
+          <PaymentInstructions />
           {submitted ? (
-            <section style={{ marginTop: 24, textAlign: "center", border: "1px solid #c4a86a", borderRadius: 8, padding: 20 }}>
+            <section className="public-payment-confirmation">
               <h2>تم رفع إثبات الدفع بنجاح</h2><p>حجزك في وضع الانتظار للمراجعة.</p>
             </section>
           ) : (
-            <form action={`/payment/${id}?submitted=1`} method="get" style={{ display: "grid", gap: 16, marginTop: 24 }}>
+            <form action={`/payment/${id}?submitted=1`} method="get" className="public-payment-form">
               <label>صورة إثبات الدفع (عرض تجريبي)<input className="field" type="file" accept="image/jpeg,image/png,image/webp" /></label>
               <button className="btn" type="submit">رفع إثبات الدفع التجريبي</button>
             </form>
           )}
         </section>
+        </div>
       </main>
     );
   }
   return (
-    <main className="container" style={{ maxWidth: 760, padding: "48px 0" }}>
+    <main className="public-ambient-page">
+      <div className="public-ambient-content">
+      <div className="public-page-locale"><LanguageToggle /></div>
+      <h1 className="public-transaction-title">الدفع اليدوي</h1>
       {submitted ? (
-        <section className="card" style={{ padding: 28, textAlign: "center", borderColor: "#c4a86a" }}>
-          <h1>تم رفع إثبات الدفع</h1>
+        <section className="card public-payment-confirmation">
+          <h2>تم رفع إثبات الدفع</h2>
           <p>حجزك بانتظار مراجعة الإدارة. لن يتم إصدار التذاكر قبل الموافقة على الدفع.</p>
           <a className="btn" href="/bookings">تابع حالة الحجز والتذكرة</a>
         </section>
       ) : null}
-      <section className="card" style={{ marginTop: 24, padding: 28 }}>
-        <h1>الدفع اليدوي</h1>
-        <p>رقم الحجز: <code dir="ltr">{id}</code></p>
-        <p>موعد العرض: <strong>{String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</strong></p>
-        <p>المبلغ المستحق: <strong style={{ color: "var(--gold)" }}>{Number(booking.totalAmount).toLocaleString("ar")} جنيه</strong></p>
+      <section className="card public-transaction-card">
+        <div className="public-payment-summary">
+          <p><span>رقم الحجز</span><strong><code dir="ltr">{displayBookingNumber(id, booking.bookingNumber)}</code></strong></p>
+          <p><span>موعد العرض</span><strong>{String(booking.showSnapshot?.date || "")} · {String(booking.showSnapshot?.time || "")}</strong></p>
+          <p><span>المبلغ المستحق</span><strong className="public-payment-amount">{Number(booking.totalAmount).toLocaleString("ar")} جنيه</strong></p>
+        </div>
         {["PENDING_PAYMENT", "REJECTED"].includes(booking.status) ? (
-          <PaymentUploadForm bookingId={id} />
+          <>
+            <PaymentInstructions />
+            <PaymentUploadForm bookingId={id} />
+          </>
         ) : (
-          <div style={{ marginTop: 24 }}>
+          <div className="public-payment-status">
             <p>حالة الحجز: <strong>{booking.status as string}</strong></p>
-            <a href="/bookings" style={{ color: "var(--gold)" }}>متابعة حالة الحجز والتذكرة ←</a>
+            <a href="/bookings">متابعة حالة الحجز والتذكرة ←</a>
           </div>
         )}
       </section>
+      </div>
     </main>
   );
 }

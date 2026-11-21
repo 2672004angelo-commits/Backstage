@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { getPublicPageLabel } from "@/lib/site-content";
 import { notFound } from "next/navigation";
+import PublicSiteNavigation from "../../PublicSiteNavigation";
 
 export const dynamic = "force-dynamic";
 
@@ -53,13 +54,14 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             <span className="public-brand-mark" aria-hidden="true">B</span>
             <span>BACKSTAGE</span>
           </a>
-          <nav className="public-nav" aria-label="التنقل الرئيسي">
-            <a href="/">الرئيسية</a>
-            <a href="/#shows">العروض</a>
-            <a href="/cast">طاقم العمل</a>
-            {pages.map((item) => <a href={`/pages/${encodeURIComponent(String(item.slug))}`} key={item._id.toString()}>{getPublicPageLabel(String(item.title), String(item.slug))}</a>)}
-            <a href="/bookings">حجوزاتي</a>
-          </nav>
+          <PublicSiteNavigation
+            activePath={`/pages/${slug}`}
+            pages={pages.map((item) => ({
+              id: item._id.toString(),
+              title: getPublicPageLabel(String(item.title), String(item.slug)),
+              slug: String(item.slug),
+            }))}
+          />
         </div>
       </header>
       <section className="public-content-hero">

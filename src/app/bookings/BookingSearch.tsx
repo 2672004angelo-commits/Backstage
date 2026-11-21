@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 type SearchResult = {
   id: string;
+  bookingNumber: string;
   status: string;
   show: string;
   fullName: string;
@@ -19,6 +20,7 @@ function isSearchResult(value: unknown): value is SearchResult {
   if (!value || typeof value !== "object") return false;
   const result = value as Record<string, unknown>;
   return typeof result.id === "string"
+    && typeof result.bookingNumber === "string"
     && typeof result.status === "string"
     && typeof result.show === "string"
     && typeof result.fullName === "string"
@@ -158,6 +160,7 @@ export default function BookingSearch() {
         <div className="booking-results-list" aria-live="polite">
           {results.map((result) => (
             <section className="card booking-search-result" key={result.id}>
+              <p>رقم الحجز: <strong dir="ltr">{result.bookingNumber}</strong></p>
               <p>الاسم: <strong>{result.fullName}</strong></p>
               <p>العرض: <strong>{result.show}</strong></p>
               {(result.performanceDate || result.performanceTime) && (

@@ -4,8 +4,8 @@ import { demoShows } from "@/lib/demo";
 import { getPublicPageLabel } from "@/lib/site-content";
 import { getShowPerformances } from "@/lib/show-performances";
 import ShowTicker from "./ShowTicker";
-import LanguageToggle from "./LanguageToggle";
 import HeroTypewriter from "./HeroTypewriter";
+import PublicSiteNavigation from "./PublicSiteNavigation";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -44,14 +44,14 @@ export default async function Home() {
             <span className="public-brand-mark" aria-hidden="true">B</span>
             <span>BACKSTAGE</span>
           </a>
-          <nav className="public-nav" aria-label="التنقل الرئيسي">
-            <a href="/">الرئيسية</a>
-            <a href="#shows">العروض</a>
-            <a href="/cast">طاقم العمل</a>
-            {pages.map((page) => <a href={`/pages/${encodeURIComponent(String(page.slug))}`} key={page._id.toString()}>{getPublicPageLabel(String(page.title), String(page.slug))}</a>)}
-            <a href="/bookings">حجوزاتي</a>
-            <LanguageToggle />
-          </nav>
+          <PublicSiteNavigation
+            activePath="/"
+            pages={pages.map((page) => ({
+              id: page._id.toString(),
+              title: getPublicPageLabel(String(page.title), String(page.slug)),
+              slug: String(page.slug),
+            }))}
+          />
         </div>
       </header>
       <section className="public-hero">

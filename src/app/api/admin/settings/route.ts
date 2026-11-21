@@ -47,3 +47,25 @@ export async function POST(request: NextRequest) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(request: NextRequest) {
+  if (!isMongoConfigured()) return NextResponse.json({ error: "DATABASE_NOT_CONFIGURED" }, { status: 503 });
+  try { await requireRole(["admin"]); }
+  catch { return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 }); }
+  let body: Record<string, unknown>;
+  try {
+    const value: unknown = await request.json();
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
+    }
+    body = value as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
+  }
+  const key = String(body.key || "");
+  if (!["payment", "public"].includes(key)) {
+    return NextResponse.json({ error: "INVALID_SETTINGS_KEY" }, { status: 400 });
+  }
+  await (await getDb()).collection("settings").deleteOne({ key });
+  return NextResponse.json({ ok: true });
+}

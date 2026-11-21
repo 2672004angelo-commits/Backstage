@@ -2,6 +2,7 @@ import { getDb, isMongoConfigured } from "@/lib/mongodb";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminPageHeader from "../AdminPageHeader";
+import AdminBrandingDeleteButton from "./AdminBrandingDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +33,20 @@ export default async function BrandingAdmin() {
       <AdminPageHeader eyebrow="مظهر BACKSTAGE" title="هوية العلامة" description="تحكم في الصور والشعارات والعناصر البصرية التي تظهر للزوار." />
       <div className="admin-branding-grid">
         {brandingItems.map(({ kind, label }) => (
-          <form className="card admin-branding-card" key={kind} action="/api/admin/branding" method="post" encType="multipart/form-data">
+          <section className="card admin-branding-card" key={kind}>
             <strong>{label}</strong>
-            <input type="hidden" name="kind" value={kind} />
-            {branding?.[`${kind}FileId`] ? <img src={`/api/files/${branding[`${kind}FileId`]}`} alt={label} style={{ width: "100%", maxHeight: 160, objectFit: "contain" }} /> : null}
-            <input className="field" type="file" name="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" required />
-            <button className="btn" type="submit">رفع / استبدال</button>
-          </form>
+            {branding?.[`${kind}FileId`] ? (
+              <>
+                <img src={`/api/files/${branding[`${kind}FileId`]}`} alt={label} style={{ width: "100%", maxHeight: 160, objectFit: "contain" }} />
+                <AdminBrandingDeleteButton kind={kind} label={label} />
+              </>
+            ) : null}
+            <form action="/api/admin/branding" method="post" encType="multipart/form-data">
+              <input type="hidden" name="kind" value={kind} />
+              <input className="field" type="file" name="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" required />
+              <button className="btn" type="submit">رفع / استبدال</button>
+            </form>
+          </section>
         ))}
       </div>
     </main>
