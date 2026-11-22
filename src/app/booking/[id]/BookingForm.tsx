@@ -184,7 +184,6 @@ export default function BookingForm({
           type="tel"
           inputMode="tel"
           required
-          pattern="[+]?[0-9٠-٩۰-۹ ()-]{8,20}"
           title="أدخل رقم هاتف صحيحًا"
           placeholder="0770 123 4567"
           defaultValue={demoMode ? "07701234567" : undefined}
