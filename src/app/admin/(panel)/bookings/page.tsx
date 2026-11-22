@@ -77,18 +77,20 @@ export default async function AdminBookings() {
                 />
               </section>
             ))}
-            {["PENDING_REVIEW", "APPROVED"].includes(booking.status) && (
-              <BookingReviewActions bookingId={booking._id.toString()} approved={booking.status === "APPROVED"} />
-            )}
-            <AdminBookingActions
-              bookingId={booking._id.toString()}
-              fullName={String(booking.fullName || "")}
-              mobile={String(booking.mobile || "")}
-              email={String(booking.email || "")}
-              performanceId={String(booking.performanceId || booking.showSnapshot?.performanceId || "")}
-              performances={performancesByShow.get(String(booking.showId)) || []}
-              canEdit={booking.status !== "APPROVED"}
-            />
+            <div className="admin-booking-toolbar">
+              {["PENDING_REVIEW", "APPROVED"].includes(booking.status) && (
+                <BookingReviewActions bookingId={booking._id.toString()} approved={booking.status === "APPROVED"} />
+              )}
+              <AdminBookingActions
+                bookingId={booking._id.toString()}
+                fullName={String(booking.fullName || "")}
+                mobile={String(booking.mobile || "")}
+                email={String(booking.email || "")}
+                performanceId={String(booking.performanceId || booking.showSnapshot?.performanceId || "")}
+                performances={performancesByShow.get(String(booking.showId)) || []}
+                canEdit={booking.status !== "APPROVED"}
+              />
+            </div>
           </article>
         ))}
       </div>

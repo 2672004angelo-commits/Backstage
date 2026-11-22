@@ -36,9 +36,10 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   if (!isMongoConfigured() || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) notFound();
   const db = await getDb();
-  const [page, pages] = await Promise.all([
+  const [page, pages, branding] = await Promise.all([
     db.collection("content_pages").findOne({ slug, published: true }),
     db.collection("content_pages").find({ published: true }).sort({ title: 1 }).limit(20).toArray(),
+    db.collection("settings").findOne({ key: "branding" }),
   ]);
   if (!page) notFound();
   const paragraphs = String(page.content || "")
@@ -84,6 +85,11 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             {paragraphs.length
               ? paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)
               : <p>هذه الصفحة قيد الإعداد.</p>}
+            {(["about", "about-us", "من-نحن"].includes(slug) && branding?.teamPhotoFileId) && (
+              <figure className="public-team-photo">
+                <img src={`/api/files/${String(branding.teamPhotoFileId)}`} alt="فريق مسرح BACKSTAGE" />
+              </figure>
+            )}
           </div>
         </article>
       </div>

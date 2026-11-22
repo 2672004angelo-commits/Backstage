@@ -11,6 +11,11 @@ export async function POST(request: NextRequest) {
   const kind = String(form.get("kind") || "");
   const file = form.get("file");
   if (!kind || !(file instanceof File)) return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400 });
+  const allowedKinds = [
+    "mainLogo", "secondaryLogo", "favicon", "heroBackground", "websiteCover",
+    "showPoster", "ticketLogo", "ticketBackground", "socialImage", "teamPhoto",
+  ];
+  if (!allowedKinds.includes(kind)) return NextResponse.json({ error: "INVALID_KIND" }, { status: 400 });
   if (!["image/jpeg", "image/png", "image/webp", "image/svg+xml"].includes(file.type) || file.size > 8 * 1024 * 1024) {
     return NextResponse.json({ error: "INVALID_FILE" }, { status: 400 });
   }
@@ -52,7 +57,7 @@ export async function DELETE(request: NextRequest) {
   const kind = String(body.kind || "");
   const allowedKinds = [
     "mainLogo", "secondaryLogo", "favicon", "heroBackground", "websiteCover",
-    "showPoster", "ticketLogo", "ticketBackground", "socialImage",
+    "showPoster", "ticketLogo", "ticketBackground", "socialImage", "teamPhoto",
   ];
   if (!allowedKinds.includes(kind)) return NextResponse.json({ error: "INVALID_KIND" }, { status: 400 });
 

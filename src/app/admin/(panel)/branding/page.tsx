@@ -16,6 +16,7 @@ const brandingItems = [
   { kind: "ticketLogo", label: "شعار التذكرة" },
   { kind: "ticketBackground", label: "خلفية التذكرة" },
   { kind: "socialImage", label: "صورة المشاركة" },
+  { kind: "teamPhoto", label: "صورة فريق BACKSTAGE" },
 ];
 
 export default async function BrandingAdmin() {

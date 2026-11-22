@@ -845,7 +845,35 @@ button, input, textarea, select { font: inherit; }
 .admin-booking-list, .admin-show-list { display: grid; gap: 12px; }
 .admin-booking-card { padding: 18px 20px; border-color: rgba(232,223,208,.09); background: rgba(17,18,22,.58); }
 .admin-booking-card > strong { color: #eee8dd; font-size: 14px; }
-.admin-booking-card p { color: #a7a4aa; font-size: 12px; line-height: 1.8; }
+.admin-booking-card { display: grid; gap: 10px; }
+.admin-booking-card p { margin: 0; color: #a7a4aa; font-size: 12px; line-height: 1.8; }
+.admin-booking-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(232,223,208,.08);
+}
+.admin-booking-toolbar .admin-record-actions,
+.admin-booking-toolbar .admin-booking-actions,
+.admin-payment-record-actions {
+  min-width: 0;
+}
+.admin-payment-record-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-payment-record-actions label {
+  display: grid;
+  min-width: min(220px, 100%);
+  gap: 6px;
+  color: #bcb4aa;
+  font-size: 11px;
+}
+.admin-payment-record-actions .field { min-height: 40px; }
 .admin-show-list { margin-top: 20px; }
 .admin-show-list-item { border-color: rgba(232,223,208,.09); background: rgba(17,18,22,.58); }
 .admin-branding-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 13px; }
@@ -1152,6 +1180,8 @@ button, input, textarea, select { font: inherit; }
 .public-content-copy { min-width: 0; padding: clamp(26px, 5vw, 56px); color: #e0d7ca; font-size: clamp(15px, 1.6vw, 18px); line-height: 2.15; overflow-wrap: anywhere; }
 .public-content-copy p { margin: 0 0 1.35em; }
 .public-content-copy p:last-child { margin-bottom: 0; }
+.public-team-photo { margin: 28px 0 0; overflow: hidden; border: 1px solid rgba(195,161,104,.24); border-radius: 14px; background: #171214; }
+.public-team-photo img { display: block; width: 100%; max-height: 520px; object-fit: cover; }
 .public-content-footer { border-top: 1px solid rgba(195, 161, 104, .2); background: rgba(20, 17, 18, .72); }
 .public-content-footer > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; color: #8f8372; font-size: 10px; }
 .public-content-footer a { color: #d2b778; font: 13px Georgia, serif; letter-spacing: 1px; text-decoration: none; }
@@ -1814,6 +1844,13 @@ button, input, textarea, select { font: inherit; }
   .admin-checkin-submit { min-height: 48px; }
   .admin-account-page { min-height: calc(100vh - 132px); padding: 20px 16px; border-radius: 16px; }
   .admin-booking-card { padding: 15px; }
+  .admin-booking-toolbar { gap: 8px; }
+  .admin-booking-toolbar .admin-record-actions,
+  .admin-booking-toolbar .admin-booking-actions > div { display: grid !important; grid-template-columns: 1fr; width: 100%; }
+  .admin-booking-toolbar .btn,
+  .admin-record-actions > button { width: 100%; }
+  .admin-payment-record-actions { display: grid; align-items: stretch; }
+  .admin-payment-record-actions > button { width: 100%; }
   .admin-branding-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
   .admin-dashboard-hero { min-height: 160px; }
   .admin-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
