@@ -81,9 +81,17 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             <i />
             <a href="/">العودة للرئيسية <b aria-hidden="true">←</b></a>
           </aside>
-          <div className="public-content-copy" dir="auto">
+          <div className="public-content-copy" dir="rtl" lang="ar">
             {paragraphs.length
-              ? paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)
+              ? paragraphs.map((paragraph, index) => (
+                <p key={`${index}-${paragraph.slice(0, 20)}`}>
+                  {paragraph.split(/(BACKSTAGE)/g).map((part, partIndex) =>
+                    part === "BACKSTAGE"
+                      ? <bdi dir="ltr" lang="en" key={`${partIndex}-brand`}>BACKSTAGE</bdi>
+                      : <span key={`${partIndex}-text`}>{part}</span>,
+                  )}
+                </p>
+              ))
               : <p>هذه الصفحة قيد الإعداد.</p>}
             {(["about", "about-us", "من-نحن"].includes(slug) && branding?.teamPhotoFileId) && (
               <figure className="public-team-photo">

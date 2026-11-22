@@ -1177,8 +1177,9 @@ button, input, textarea, select { font: inherit; }
 .public-content-aside a { margin-top: auto; color: #d4c7b3; font-size: 12px; letter-spacing: 0; text-decoration: none; }
 .public-content-aside a:hover { color: #e0c27e; }
 .public-content-aside a b { margin-inline-start: 6px; color: #c3a168; }
-.public-content-copy { min-width: 0; padding: clamp(26px, 5vw, 56px); color: #e0d7ca; font-size: clamp(15px, 1.6vw, 18px); line-height: 2.15; overflow-wrap: anywhere; }
-.public-content-copy p { margin: 0 0 1.35em; }
+.public-content-copy { min-width: 0; padding: clamp(26px, 5vw, 56px); color: #e0d7ca; text-align: right; direction: rtl; unicode-bidi: plaintext; font-size: clamp(15px, 1.6vw, 18px); line-height: 2.15; overflow-wrap: anywhere; }
+.public-content-copy p { margin: 0 0 1.35em; direction: rtl; text-align: right; unicode-bidi: plaintext; }
+.public-content-copy bdi { display: inline-block; margin-inline: 3px; direction: ltr; unicode-bidi: isolate; }
 .public-content-copy p:last-child { margin-bottom: 0; }
 .public-team-photo { margin: 28px 0 0; overflow: hidden; border: 1px solid rgba(195,161,104,.24); border-radius: 14px; background: #171214; }
 .public-team-photo img { display: block; width: 100%; max-height: 520px; object-fit: cover; }
