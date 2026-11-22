@@ -1,23 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LanguageToggle from "../LanguageToggle";
 
 export default function CheckinPage() {
   const [token, setToken] = useState("");
   const [result, setResult] = useState("");
   async function scan() {
+    if (!token.trim()) {
+      setResult("أدخل كود التذكرة أولًا.");
+      return;
+    }
     setResult("جاري التحقق...");
     const response = await fetch("/api/checkin", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ token: token.trim() }),
     });
     const data = await response.json();
     setResult(data.status === "VALID"
       ? `تم التحقق من التذكرة · ${data.ticket?.guestName || ""} · ${data.ticket?.date || ""} ${data.ticket?.time || ""}`
       : data.status || "INVALID");
   }
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("t");
+    if (!code) return;
+    window.location.replace(`/admin/checkin?code=${encodeURIComponent(code)}`);
+  }, []);
   return (
     <main className="public-ambient-page">
       <div className="public-ambient-content is-narrow">

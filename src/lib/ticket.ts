@@ -8,7 +8,7 @@ import { getSecret } from "@/lib/auth";
 import fs from "fs";
 import { formatPerformanceTime } from "@/lib/show-performances";
 
-export const TICKET_IMAGE_VERSION = 6;
+export const TICKET_IMAGE_VERSION = 8;
 
 export async function nextTicketId(db: Db) {
   const counter = await db.collection<{ _id: string; value: number }>("counters").findOneAndUpdate(
@@ -52,7 +52,7 @@ export async function makeTicketPng(input: {
   qrToken: string;
   appUrl: string;
 }) {
-  const qr = await QRCode.toBuffer(`${input.appUrl}/checkin?t=${encodeURIComponent(input.qrToken)}`, {
+  const qr = await QRCode.toBuffer(`${input.appUrl}/admin/checkin?code=${encodeURIComponent(input.qrToken)}`, {
     width: 330,
     margin: 2,
     color: { dark: "#171217", light: "#f4eedf" },

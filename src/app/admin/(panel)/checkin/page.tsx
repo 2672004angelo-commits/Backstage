@@ -11,7 +11,36 @@ export default function AdminCheckinPage() {
 
   useEffect(() => {
     const ticketCode = new URLSearchParams(window.location.search).get("code");
-    if (ticketCode) setToken(ticketCode);
+    if (!ticketCode) return;
+    setToken(ticketCode);
+    setBusy(true);
+    setResult("جاري التحقق...");
+    fetch("/api/checkin", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: ticketCode }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "VALID") {
+          setResult(`تم تسجيل الدخول · ${data.ticket.guestName} · ${data.ticket.date} · ${data.ticket.time}`);
+          setResultType("success");
+        } else if (data.status === "ALREADY_USED") {
+          setResult("هذه التذكرة دخلت مسبقًا وصلاحيتها منتهية.");
+          setResultType("error");
+        } else if (data.status === "CANCELLED") {
+          setResult("التذكرة ملغاة.");
+          setResultType("error");
+        } else {
+          setResult("كود التذكرة غير صحيح أو غير نشط.");
+          setResultType("error");
+        }
+      })
+      .catch(() => {
+        setResult("تعذر الاتصال بخدمة التحقق.");
+        setResultType("error");
+      })
+      .finally(() => setBusy(false));
   }, []);
 
   async function verifyTicket() {
