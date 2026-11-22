@@ -12,18 +12,6 @@ const bookingErrors: Record<string, string> = {
   PERFORMANCE_UNAVAILABLE: "ليلة العرض المختارة لم تعد متاحة. حدّث الصفحة واختر موعدًا آخر.",
   BOOKING_ALREADY_EXISTS: "لديك حجز مسجل لهذه الليلة بالفعل. راجع صفحة «حجوزاتي» أو ارفع إثبات الدفع للحجز السابق.",
   NOT_ENOUGH_CAPACITY: "اكتمل عدد المقاعد المتاحة لهذه الليلة. اختر ليلة أخرى إن توفرت.",
-  PUSH_CONSENT_REQUIRED: "وافق على إشعارات اعتماد التذكرة لإتمام الحجز.",
-  PUSH_NOT_CONFIGURED: "خدمة الإشعارات غير مهيأة حاليًا. لم يتم إنشاء الحجز.",
-  PUSH_SUBSCRIPTION_REQUIRED: "فعّل إشعارات اعتماد التذكرة لإتمام الحجز.",
-  PUSH_SUBSCRIPTION_FAILED: "تعذر حفظ تفعيل الإشعارات، ولم يكتمل الحجز. حاول مرة أخرى.",
-};
-
-const pushErrors: Record<string, string> = {
-  PUSH_UNSUPPORTED: "الإشعارات غير مدعومة على هذا المتصفح، لذلك لا يمكن إتمام الحجز منه.",
-  PUSH_NOT_CONFIGURED: "خدمة الإشعارات غير مهيأة حاليًا. لم يتم إنشاء الحجز.",
-  PUSH_PERMISSION_DENIED: "الإشعارات محظورة لهذا الموقع. اسمح بها من إعدادات المتصفح ثم حاول مجددًا.",
-  PUSH_PERMISSION_REQUIRED: "يجب السماح بالإشعارات لإتمام الحجز.",
-  PUSH_SUBSCRIBE_FAILED: "تعذر تفعيل الإشعارات على هذا الجهاز. تحقق من اتصالك وحاول مرة أخرى.",
 };
 
 function getErrorMessage(error: unknown) {
@@ -54,7 +42,11 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 async function createPushSubscription() {
-  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+  if (
+    !("Notification" in window)
+    || !("serviceWorker" in navigator)
+    || !("PushManager" in window)
+  ) {
     throw new Error("PUSH_UNSUPPORTED");
   }
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -116,11 +108,21 @@ export default function BookingForm({
     };
 
     try {
-      const pushSubscription = await createPushSubscription();
+      let pushSubscription: Awaited<ReturnType<typeof createPushSubscription>> | null = null;
+      if (payload.notificationConsent) {
+        try {
+          pushSubscription = await createPushSubscription();
+        } catch (pushError) {
+          console.info(
+            "BOOKING_PUSH_OPTIONAL_UNAVAILABLE",
+            pushError instanceof Error ? pushError.message : "UnknownError",
+          );
+        }
+      }
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...payload, pushSubscription }),
+        body: JSON.stringify({ ...payload, ...(pushSubscription ? { pushSubscription } : {}) }),
       });
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
@@ -135,10 +137,6 @@ export default function BookingForm({
       }
       window.location.assign(`/payment/${encodeURIComponent(data.id)}`);
     } catch (requestError) {
-      if (requestError instanceof Error && requestError.message in pushErrors) {
-        setError(pushErrors[requestError.message]);
-        return;
-      }
       console.error("BOOKING_REQUEST_FAILED", requestError instanceof Error ? requestError.name : "UnknownError");
       setError("تعذر الاتصال بخدمة الحجز. تحقق من اتصال الإنترنت وحاول مرة أخرى.");
     } finally {
@@ -201,12 +199,12 @@ export default function BookingForm({
       </p>
       {!demoMode && (
         <label className="public-booking-notification">
-          <input type="checkbox" name="notificationConsent" required />
-          <span>أوافق على تفعيل إشعارات الهاتف لإبلاغي عند اعتماد التذكرة (مطلوب لإتمام الحجز).</span>
+          <input type="checkbox" name="notificationConsent" />
+          <span>أوافق على تفعيل إشعارات الهاتف لإبلاغي عند اعتماد التذكرة (اختياري).</span>
         </label>
       )}
       <button className="btn" type="submit" disabled={loading || performances.every((performance) => !performance.open)}>
-        {loading ? "جارٍ تفعيل الإشعارات وتأكيد الحجز..." : demoMode ? "متابعة للدفع التجريبي" : "تأكيد الحجز والدفع"}
+        {loading ? "جارٍ تأكيد الحجز..." : demoMode ? "متابعة للدفع التجريبي" : "تأكيد الحجز والدفع"}
       </button>
       {error && <p className="admin-form-status is-error" role="alert">{error}</p>}
     </form>
