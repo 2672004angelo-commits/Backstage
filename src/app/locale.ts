@@ -170,7 +170,7 @@ export const translations: Record<string, string> = {
   "التذكرة ملغاة.": "This ticket has been cancelled.",
   "كود التذكرة غير صحيح أو غير نشط.": "The ticket code is invalid or inactive.",
   "تعذر الاتصال بخدمة التحقق.": "Could not connect to the verification service.",
-  "جنيه": "IQD",
+  "جنيه": "EGP",
   "أقدم": "Older",
   "الأحدث": "Newer",
   "الفنان": "Artist",

@@ -5,6 +5,7 @@ import PaymentSettingsForm from "./PaymentSettingsForm";
 import SocialLinksForm from "./SocialLinksForm";
 import AdminSettingDeleteButton from "./AdminSettingDeleteButton";
 import AdminPageHeader from "../AdminPageHeader";
+import AdminPushToggle from "./AdminPushToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export default async function SettingsAdmin() {
       }} />
       {payment && <AdminSettingDeleteButton settingKey="payment" label="إعدادات الدفع" />}
       <SocialLinksForm initialLinks={socialLinks} />
+      <AdminPushToggle />
       {publicSettings && <AdminSettingDeleteButton settingKey="public" label="روابط التواصل" />}
     </main>
   );

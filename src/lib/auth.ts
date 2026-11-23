@@ -5,7 +5,14 @@ import bcrypt from "bcryptjs";
 export type Role = "admin" | "staff" | "customer";
 
 export function getSecret() {
-  return new TextEncoder().encode(process.env.JWT_SECRET || "development-secret-change-before-production");
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET is not configured");
+    }
+    return new TextEncoder().encode("development-secret-change-before-production");
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function signSession(subject: string, role: Role) {

@@ -132,7 +132,7 @@ export default async function CastPage() {
             {pages.map((page) => <a href={`/pages/${encodeURIComponent(page.slug)}`} key={page.id}>{page.title}</a>)}
             <a href="/bookings">حجوزاتي</a>
           </nav>
-          <span>© 2025 BACKSTAGE</span>
+          <span>© {new Date().getFullYear()} BACKSTAGE</span>
         </div>
       </footer>
     </main>

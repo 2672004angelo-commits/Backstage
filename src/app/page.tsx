@@ -107,7 +107,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="container public-footer-meta" lang="en" dir="ltr">
-          <span>© 2025 BACKSTAGE. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} BACKSTAGE. All rights reserved.</span>
         </div>
       </footer>
     </main>

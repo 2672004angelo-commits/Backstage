@@ -42,3 +42,30 @@ export async function sendBookingPush(
     }
   }));
 }
+
+export async function sendAdminPush(
+  db: Db,
+  payload: { title: string; body: string; url: string },
+) {
+  if (!configureWebPush()) return;
+  const subscriptions = await db.collection("pushSubscriptions")
+    .find({ role: "admin" })
+    .toArray();
+  await Promise.allSettled(subscriptions.map(async (subscription) => {
+    try {
+      await webpush.sendNotification(subscription.subscription, JSON.stringify(payload), {
+        TTL: 60 * 60 * 24,
+      });
+    } catch (error) {
+      const statusCode = typeof error === "object" && error && "statusCode" in error
+        ? Number(error.statusCode)
+        : 0;
+      if (statusCode === 404 || statusCode === 410) {
+        await db.collection("pushSubscriptions").deleteOne({ _id: subscription._id });
+      } else {
+        const errorName = error instanceof Error ? error.name : "UnknownError";
+        console.error("ADMIN_WEB_PUSH_DELIVERY_FAILED", { statusCode, errorName });
+      }
+    }
+  }));
+}

@@ -8,7 +8,7 @@ export const bookingSchema = z.object({
     .max(100)
     .refine((name) => name.split(/\s+/).filter(Boolean).length >= 4, "يجب إدخال الاسم رباعيًا"),
   mobile: z.string().trim().regex(/^\+?[0-9]{8,15}$/),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().trim().email("أدخل بريدًا إلكترونيًا صحيحًا"),
   quantity: z.number().int().min(1).max(1),
 });
 

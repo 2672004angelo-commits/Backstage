@@ -109,7 +109,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
             <a href="/cast">طاقم العمل</a>
             <a href="/bookings">حجوزاتي</a>
           </nav>
-          <span>© 2025 BACKSTAGE</span>
+          <span>© {new Date().getFullYear()} BACKSTAGE</span>
         </div>
       </footer>
     </main>

@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import sharp from "sharp";
+import { Resvg } from "@resvg/resvg-js";
 import crypto from "crypto";
 import path from "path";
 import type { Db } from "mongodb";
@@ -8,7 +8,7 @@ import { getSecret } from "@/lib/auth";
 import fs from "fs";
 import { formatPerformanceTime } from "@/lib/show-performances";
 
-export const TICKET_IMAGE_VERSION = 8;
+export const TICKET_IMAGE_VERSION = 9;
 
 export async function nextTicketId(db: Db) {
   const counter = await db.collection<{ _id: string; value: number }>("counters").findOneAndUpdate(
@@ -59,17 +59,11 @@ export async function makeTicketPng(input: {
   });
   const escape = (value: string) => value.replace(/[<>&"]/g, (char) =>
     ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[char] || char);
-  const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansArabic.ttf");
-  const arabicFont = fs.existsSync(fontPath)
-    ? fs.readFileSync(fontPath).toString("base64")
-    : "";
+  const arabicFont = getTicketFontBuffer();
   const displayTime = formatPerformanceTime(input.time);
-  const fontFamily = arabicFont
-    ? "Noto Sans Arabic, Tahoma, Arial, DejaVu Sans"
-    : "Tahoma, Arial, Segoe UI, DejaVu Sans";
+  const fontFamily = "Noto Sans Arabic";
   const svg = `<svg width="1200" height="1800" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      ${arabicFont ? `<style>@font-face { font-family: "Noto Sans Arabic"; src: url("data:font/ttf;base64,${arabicFont}") format("truetype"); font-weight: 100 900; }</style>` : ""}
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#24191d"/>
         <stop offset=".52" stop-color="#151318"/>
@@ -91,13 +85,13 @@ export async function makeTicketPng(input: {
     <ellipse cx="600" cy="235" rx="430" ry="210" fill="url(#glow)"/>
     <text x="600" y="165" text-anchor="middle" fill="#dfcb94" font-family="${fontFamily}" font-size="36" letter-spacing="8">THEATRICAL ADMISSION</text>
     <line x1="260" y1="220" x2="940" y2="220" stroke="url(#gold)" stroke-width="3"/>
-    <text x="600" y="320" text-anchor="middle" fill="#f4eedf" font-family="Georgia" font-size="92" letter-spacing="14">BACKSTAGE</text>
+    <text x="600" y="320" text-anchor="middle" fill="#f4eedf" font-family="${fontFamily}" font-size="92" letter-spacing="14">BACKSTAGE</text>
     <rect x="110" y="390" width="980" height="210" rx="28" fill="#f4eedf" fill-opacity=".07" stroke="#dac58f" stroke-opacity=".38"/>
     <text x="600" y="452" text-anchor="middle" fill="#cbb379" font-family="${fontFamily}" font-size="32" letter-spacing="4">العرض المسرحي</text>
     <text x="600" y="535" text-anchor="middle" fill="#fffaf0" font-family="${fontFamily}" font-size="58" font-weight="700" direction="rtl">${escape(input.showName)}</text>
     <rect x="110" y="650" width="980" height="150" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
     <text x="1040" y="704" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">اسم الضيف</text>
-    <text x="1040" y="762" text-anchor="start" fill="#fffaf0" font-family="${fontFamily}" font-size="46" font-weight="700" direction="rtl">${escape(input.guestName)}</text>
+    <text x="1040" y="762" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="46" font-weight="700" direction="rtl">${escape(input.guestName)}</text>
     <rect x="110" y="825" width="470" height="170" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
     <text x="530" y="880" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">التاريخ</text>
     <text x="530" y="945" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700">${escape(input.date)}</text>
@@ -106,7 +100,7 @@ export async function makeTicketPng(input: {
     <text x="1040" y="945" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700">${escape(displayTime)}</text>
     <rect x="110" y="1020" width="980" height="150" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
     <text x="1040" y="1074" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">المكان</text>
-    <text x="1040" y="1132" text-anchor="start" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700" direction="rtl">${escape(input.venue)}</text>
+    <text x="1040" y="1132" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700" direction="rtl">${escape(input.venue)}</text>
     <line x1="110" y1="1195" x2="1090" y2="1195" stroke="#b99a5a" stroke-width="3" stroke-dasharray="14 14"/>
     <rect x="420" y="1235" width="360" height="360" rx="30" fill="#f4eedf"/>
     <rect x="438" y="1253" width="324" height="324" rx="20" fill="#fff"/>
@@ -114,5 +108,26 @@ export async function makeTicketPng(input: {
     <text x="600" y="1660" text-anchor="middle" fill="#cbb379" font-family="${fontFamily}" font-size="28" letter-spacing="4">رقم التذكرة</text>
     <text x="600" y="1718" text-anchor="middle" fill="#fffaf0" font-family="${fontFamily}" font-size="38" font-weight="700">${escape(input.ticketId)}</text>
   </svg>`;
-  return sharp(Buffer.from(svg)).png().toBuffer();
+  const renderer = new Resvg(svg, {
+    font: {
+      // fontBuffers is supported at runtime in resvg-js 2.6 but missing from its type definitions.
+      fontBuffers: [arabicFont],
+      loadSystemFonts: false,
+      defaultFontFamily: "Noto Sans Arabic",
+    } as ConstructorParameters<typeof Resvg>[1] extends { font?: infer F } ? F : never,
+  });
+  return renderer.render().asPng();
+}
+
+let ticketFontBuffer: Buffer | undefined;
+
+function getTicketFontBuffer(): Buffer {
+  if (ticketFontBuffer === undefined) {
+    const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSansArabic.ttf");
+    if (!fs.existsSync(fontPath)) {
+      throw new Error("TICKET_FONT_UNAVAILABLE");
+    }
+    ticketFontBuffer = fs.readFileSync(fontPath);
+  }
+  return ticketFontBuffer;
 }

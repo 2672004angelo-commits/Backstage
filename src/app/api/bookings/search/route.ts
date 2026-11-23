@@ -12,15 +12,27 @@ export async function POST(request: NextRequest) {
   catch { return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 }); }
 
   const mobile = typeof body.mobile === "string" ? body.mobile.trim().replace(/^\+/, "") : "";
-  if (!/^[0-9]{8,15}$/.test(mobile)) {
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!/^[0-9]{8,15}$/.test(mobile) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "BOOKING_NOT_FOUND" }, { status: 404 });
   }
 
   const db = await getDb();
+  // Both the phone and the email used at booking time must match.
   const bookings = await db.collection("bookings").find({
-    $or: [
-      { mobileNormalized: mobile },
-      { mobile: { $in: [mobile, `+${mobile}`] } },
+    $and: [
+      {
+        $or: [
+          { mobileNormalized: mobile },
+          { mobile: { $in: [mobile, `+${mobile}`] } },
+        ],
+      },
+      {
+        $or: [
+          { emailNormalized: email },
+          { email },
+        ],
+      },
     ],
   }).sort({ createdAt: -1 }).limit(50).toArray();
   if (!bookings.length) return NextResponse.json({ error: "BOOKING_NOT_FOUND" }, { status: 404 });
