@@ -12,6 +12,9 @@ const bookingErrors: Record<string, string> = {
   PERFORMANCE_UNAVAILABLE: "ليلة العرض المختارة لم تعد متاحة. حدّث الصفحة واختر موعدًا آخر.",
   BOOKING_ALREADY_EXISTS: "لديك حجز مسجل لهذه الليلة بالفعل. راجع صفحة «حجوزاتي» أو ارفع إثبات الدفع للحجز السابق.",
   NOT_ENOUGH_CAPACITY: "اكتمل عدد المقاعد المتاحة لهذه الليلة. اختر ليلة أخرى إن توفرت.",
+  PROOF_REQUIRED: "صورة إثبات الدفع مطلوبة لإتمام الحجز. حوّل المبلغ ثم ارفع صورة التحويل مع الحجز.",
+  INVALID_PAYMENT_METHOD: "اختر طريقة التحويل التي استخدمتها: Instapay أو محفظة كاش.",
+  INVALID_FILE: "صورة إثبات الدفع غير مقبولة. ارفع صورة JPEG أو PNG أو WebP بحجم لا يتجاوز 8 ميجابايت.",
 };
 
 function getErrorMessage(error: unknown) {
@@ -97,19 +100,15 @@ export default function BookingForm({
     setError("");
 
     const formData = new FormData(event.currentTarget);
-    const payload = {
-      showId,
-      performanceId: String(formData.get("performanceId") || ""),
-      fullName: String(formData.get("fullName") || "").trim(),
-      mobile: normalizeMobile(String(formData.get("mobile") || "")),
-      email: String(formData.get("email") || "").trim(),
-      quantity: 1,
-      notificationConsent: formData.get("notificationConsent") === "on",
-    };
+    formData.set("showId", showId);
+    formData.set("fullName", String(formData.get("fullName") || "").trim());
+    formData.set("mobile", normalizeMobile(String(formData.get("mobile") || "")));
+    formData.set("email", String(formData.get("email") || "").trim());
+    formData.set("quantity", "1");
 
     try {
       let pushSubscription: Awaited<ReturnType<typeof createPushSubscription>> | null = null;
-      if (payload.notificationConsent) {
+      if (formData.get("notificationConsent") === "on") {
         try {
           pushSubscription = await createPushSubscription();
         } catch (pushError) {
@@ -119,10 +118,10 @@ export default function BookingForm({
           );
         }
       }
+      if (pushSubscription) formData.set("pushSubscription", JSON.stringify(pushSubscription));
       const response = await fetch("/api/bookings", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...payload, ...(pushSubscription ? { pushSubscription } : {}) }),
+        body: formData,
       });
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
@@ -135,7 +134,7 @@ export default function BookingForm({
       if (!data || typeof data !== "object" || !("id" in data) || typeof data.id !== "string") {
         throw new Error("INVALID_BOOKING_RESPONSE");
       }
-      window.location.assign(`/payment/${encodeURIComponent(data.id)}`);
+      window.location.assign(`/payment/${encodeURIComponent(data.id)}?submitted=1`);
     } catch (requestError) {
       console.error("BOOKING_REQUEST_FAILED", requestError instanceof Error ? requestError.name : "UnknownError");
       setError("تعذر الاتصال بخدمة الحجز. تحقق من اتصال الإنترنت وحاول مرة أخرى.");
@@ -193,8 +192,37 @@ export default function BookingForm({
         البريد الإلكتروني (ستحتاجه مع رقم هاتفك لمتابعة الحجز)
         <input className="field" name="email" type="email" required />
       </label>
+      <section className="payment-instructions" aria-label="تعليمات الدفع">
+        <p>حوّل المبلغ إلى أحد الرقمين التاليين، ثم ارفع صورة واضحة لإثبات الدفع مع الحجز:</p>
+        <div className="payment-instructions-grid">
+          <div className="payment-instructions-account">
+            <span>Instapay</span>
+            <strong dir="ltr">01273176278</strong>
+          </div>
+          <div className="payment-instructions-account">
+            <span>محفظة كاش</span>
+            <strong dir="ltr">01229212293</strong>
+          </div>
+        </div>
+      </section>
+      {!demoMode && (
+        <>
+          <label className="public-booking-field">
+            طريقة التحويل (مطلوبة)
+            <select className="field" name="paymentMethod" required defaultValue="">
+              <option value="" disabled>اختر Instapay أو محفظة كاش</option>
+              <option value="INSTAPAY">Instapay</option>
+              <option value="CASH_WALLET">محفظة كاش</option>
+            </select>
+          </label>
+          <label className="public-booking-field">
+            صورة إثبات التحويل (مطلوبة — JPEG أو PNG أو WebP، حتى 8 ميجابايت)
+            <input className="field" type="file" name="screenshot" accept="image/jpeg,image/png,image/webp" required />
+          </label>
+        </>
+      )}
       <p className="public-booking-note">
-        تذكرة واحدة لكل رقم هاتف أو بريد إلكتروني في الليلة الواحدة. يمكن الحجز لليالي أخرى كلٌّ على حدة.
+        لا يتم تسجيل الحجز بدون صورة إثبات الدفع. تذكرة واحدة لكل رقم هاتف أو بريد إلكتروني في الليلة الواحدة. يمكن الحجز لليالي أخرى كلٌّ على حدة.
       </p>
       {!demoMode && (
         <label className="public-booking-notification">
@@ -203,7 +231,7 @@ export default function BookingForm({
         </label>
       )}
       <button className="btn" type="submit" disabled={loading || performances.every((performance) => !performance.open)}>
-        {loading ? "جارٍ تأكيد الحجز..." : demoMode ? "متابعة للدفع التجريبي" : "تأكيد الحجز والدفع"}
+        {loading ? "جارٍ تأكيد الحجز..." : demoMode ? "متابعة للدفع التجريبي" : "تأكيد الحجز وإرسال إثبات الدفع"}
       </button>
       {error && <p className="admin-form-status is-error" role="alert">{error}</p>}
     </form>
