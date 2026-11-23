@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 import { Resvg } from "@resvg/resvg-js";
+import * as hb from "harfbuzzjs";
 import crypto from "crypto";
 import path from "path";
 import os from "os";
@@ -58,11 +59,7 @@ export async function makeTicketPng(input: {
     margin: 2,
     color: { dark: "#171217", light: "#f4eedf" },
   });
-  const escape = (value: string) => value.replace(/[<>&"]/g, (char) =>
-    ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[char] || char);
-  const arabicFont = getTicketFontBuffer();
   const displayTime = formatPerformanceTime(input.time);
-  const fontFamily = "Noto Sans Arabic";
   const svg = `<svg width="1200" height="1800" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -84,46 +81,37 @@ export async function makeTicketPng(input: {
     <rect x="34" y="34" width="1132" height="1732" rx="34" fill="none" stroke="#b99a5a" stroke-width="3"/>
     <rect x="54" y="54" width="1092" height="1692" rx="24" fill="none" stroke="#dac58f" stroke-opacity=".42" stroke-width="1"/>
     <ellipse cx="600" cy="235" rx="430" ry="210" fill="url(#glow)"/>
-    <text x="600" y="165" text-anchor="middle" fill="#dfcb94" font-family="${fontFamily}" font-size="36" letter-spacing="8">THEATRICAL ADMISSION</text>
+    ${ticketText("THEATRICAL ADMISSION", 600, 165, "middle", 36, "#dfcb94", 8)}
     <line x1="260" y1="220" x2="940" y2="220" stroke="url(#gold)" stroke-width="3"/>
-    <text x="600" y="320" text-anchor="middle" fill="#f4eedf" font-family="${fontFamily}" font-size="92" letter-spacing="14">BACKSTAGE</text>
+    ${ticketText("BACKSTAGE", 600, 320, "middle", 92, "#f4eedf", 14)}
     <rect x="110" y="390" width="980" height="210" rx="28" fill="#f4eedf" fill-opacity=".07" stroke="#dac58f" stroke-opacity=".38"/>
-    <text x="600" y="452" text-anchor="middle" fill="#cbb379" font-family="${fontFamily}" font-size="32" letter-spacing="4">العرض المسرحي</text>
-    <text x="600" y="535" text-anchor="middle" fill="#fffaf0" font-family="${fontFamily}" font-size="58" font-weight="700" direction="rtl">${escape(input.showName)}</text>
+    ${ticketText("العرض المسرحي", 600, 452, "middle", 32, "#cbb379", 4)}
+    ${ticketText(input.showName, 600, 535, "middle", 58, "#fffaf0")}
     <rect x="110" y="650" width="980" height="150" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
-    <text x="1040" y="704" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">اسم الضيف</text>
-    <text x="1040" y="762" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="46" font-weight="700" direction="rtl">${escape(input.guestName)}</text>
+    ${ticketText("اسم الضيف", 1040, 704, "end", 30, "#c9b57f")}
+    ${ticketText(input.guestName, 1040, 762, "end", 46, "#fffaf0")}
     <rect x="110" y="825" width="470" height="170" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
-    <text x="530" y="880" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">التاريخ</text>
-    <text x="530" y="945" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700">${escape(input.date)}</text>
+    ${ticketText("التاريخ", 530, 880, "end", 30, "#c9b57f")}
+    ${ticketText(input.date, 530, 945, "end", 42, "#fffaf0")}
     <rect x="620" y="825" width="470" height="170" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
-    <text x="1040" y="880" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">الموعد</text>
-    <text x="1040" y="945" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700">${escape(displayTime)}</text>
+    ${ticketText("الموعد", 1040, 880, "end", 30, "#c9b57f")}
+    ${ticketText(displayTime, 1040, 945, "end", 42, "#fffaf0")}
     <rect x="110" y="1020" width="980" height="150" rx="22" fill="#0d0d10" fill-opacity=".62" stroke="#dac58f" stroke-opacity=".22"/>
-    <text x="1040" y="1074" text-anchor="end" fill="#c9b57f" font-family="${fontFamily}" font-size="30">المكان</text>
-    <text x="1040" y="1132" text-anchor="end" fill="#fffaf0" font-family="${fontFamily}" font-size="42" font-weight="700" direction="rtl">${escape(input.venue)}</text>
+    ${ticketText("المكان", 1040, 1074, "end", 30, "#c9b57f")}
+    ${ticketText(input.venue, 1040, 1132, "end", 42, "#fffaf0")}
     <line x1="110" y1="1195" x2="1090" y2="1195" stroke="#b99a5a" stroke-width="3" stroke-dasharray="14 14"/>
     <rect x="420" y="1235" width="360" height="360" rx="30" fill="#f4eedf"/>
     <rect x="438" y="1253" width="324" height="324" rx="20" fill="#fff"/>
     <image x="435" y="1250" width="330" height="330" href="data:image/png;base64,${qr.toString("base64")}"/>
-    <text x="600" y="1660" text-anchor="middle" fill="#cbb379" font-family="${fontFamily}" font-size="28" letter-spacing="4">رقم التذكرة</text>
-    <text x="600" y="1718" text-anchor="middle" fill="#fffaf0" font-family="${fontFamily}" font-size="38" font-weight="700">${escape(input.ticketId)}</text>
+    ${ticketText("رقم التذكرة", 600, 1660, "middle", 28, "#cbb379", 4)}
+    ${ticketText(input.ticketId, 600, 1718, "middle", 38, "#fffaf0")}
   </svg>`;
-  const renderer = new Resvg(svg, {
-    font: {
-      // fontFiles loads the font inside resvg's native layer, which stays reliable on
-      // serverless runtimes where a JS Buffer may not deserialize into the native binding.
-      fontFiles: [getTicketFontRuntimePath()],
-      fontBuffers: [arabicFont],
-      loadSystemFonts: false,
-      defaultFontFamily: "Noto Sans Arabic",
-    } as ConstructorParameters<typeof Resvg>[1] extends { font?: infer F } ? F : never,
-  });
+  // Text is baked in as vector paths, so no font needs to reach resvg at all.
+  const renderer = new Resvg(svg, { font: { loadSystemFonts: false } });
   return renderer.render().asPng();
 }
 
 let ticketFontBuffer: Buffer | undefined;
-let ticketFontRuntimePath: string | undefined;
 
 function getTicketFontBuffer(): Buffer {
   if (ticketFontBuffer === undefined) {
@@ -136,22 +124,106 @@ function getTicketFontBuffer(): Buffer {
   return ticketFontBuffer;
 }
 
-function getTicketFontRuntimePath(): string {
-  if (ticketFontRuntimePath === undefined) {
-    const buffer = getTicketFontBuffer();
-    const runtimePath = path.join(os.tmpdir(), "backstage-ticket-font-noto-sans-arabic.ttf");
-    try {
-      if (!fs.existsSync(runtimePath) || fs.statSync(runtimePath).size !== buffer.length) {
-        fs.writeFileSync(runtimePath, buffer);
-      }
-    } catch {
-      try {
-        fs.writeFileSync(runtimePath, buffer);
-      } catch {
-        throw new Error("TICKET_FONT_UNAVAILABLE");
-      }
-    }
-    ticketFontRuntimePath = runtimePath;
+let hbFont: hb.Font | undefined;
+let hbUpem = 1000;
+
+function getHbFont(): hb.Font {
+  if (hbFont === undefined) {
+    const data = getTicketFontBuffer();
+    const bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    const face = new hb.Face(new hb.Blob(bytes));
+    hbUpem = face.upem || 1000;
+    hbFont = new hb.Font(face);
   }
-  return ticketFontRuntimePath;
+  return hbFont;
+}
+
+const ARABIC_CHAR = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+const LATIN_OR_DIGIT = /[A-Za-z0-9]/;
+
+type TextRun = { text: string; rtl: boolean };
+
+// Split into Arabic and non-Arabic runs. Neutral characters (spaces,
+// punctuation, colons, dashes) attach to the preceding run; leading neutrals
+// start a left-to-right run. Runs are laid out in logical order, which keeps
+// values like "6:00 مساءً" reading naturally with digits on the left.
+function splitRuns(text: string): TextRun[] {
+  const runs: TextRun[] = [];
+  for (const char of text) {
+    if (ARABIC_CHAR.test(char)) {
+      const last = runs[runs.length - 1];
+      if (last && last.rtl) last.text += char;
+      else runs.push({ text: char, rtl: true });
+    } else if (LATIN_OR_DIGIT.test(char)) {
+      const last = runs[runs.length - 1];
+      if (last && !last.rtl) last.text += char;
+      else runs.push({ text: char, rtl: false });
+    } else {
+      const last = runs[runs.length - 1];
+      if (last) last.text += char;
+      else runs.push({ text: char, rtl: false });
+    }
+  }
+  return runs;
+}
+
+type ShapedGlyph = { path: string; dx: number; dy: number; advance: number };
+
+function shapeRun(text: string, rtl: boolean, size: number, letterSpacing: number): ShapedGlyph[] {
+  const font = getHbFont();
+  const buffer = new hb.Buffer();
+  buffer.addText(text);
+  buffer.setDirection(rtl ? hb.Direction.RTL : hb.Direction.LTR);
+  buffer.setScript(rtl ? "Arab" : "Latn");
+  buffer.setLanguage("ar");
+  hb.shape(font, buffer);
+  const infos = buffer.getGlyphInfos();
+  const positions = buffer.getGlyphPositions();
+  const scale = size / hbUpem;
+  const glyphs: ShapedGlyph[] = [];
+  for (let i = 0; i < infos.length; i++) {
+    glyphs.push({
+      path: font.glyphToPath(infos[i].codepoint),
+      dx: positions[i].xOffset * scale,
+      dy: -positions[i].yOffset * scale,
+      advance: positions[i].xAdvance * scale + letterSpacing,
+    });
+  }
+  return glyphs;
+}
+
+function ticketText(
+  text: string,
+  x: number,
+  y: number,
+  anchor: "middle" | "end",
+  size: number,
+  fill: string,
+  letterSpacing = 0,
+): string {
+  const font = getHbFont();
+  const scale = size / hbUpem;
+  const runs = splitRuns(text).map((run) => ({ run, glyphs: shapeRun(run.text, run.rtl, size, letterSpacing) }));
+  let total = 0;
+  for (const { glyphs } of runs) {
+    for (const glyph of glyphs) total += glyph.advance;
+    const last = glyphs[glyphs.length - 1];
+    if (last && letterSpacing) total -= letterSpacing;
+  }
+  let pen = anchor === "middle" ? x - total / 2 : x - total;
+  const parts: string[] = [];
+  for (const { glyphs } of runs) {
+    for (const glyph of glyphs) {
+      if (glyph.path) {
+        const gx = pen + glyph.dx;
+        const gy = y + glyph.dy;
+        parts.push(
+          `<path transform="translate(${gx.toFixed(2)},${gy.toFixed(2)}) scale(${scale.toFixed(5)},${(-scale).toFixed(5)})" d="${glyph.path}"/>`,
+        );
+      }
+      pen += glyph.advance;
+    }
+  }
+  void font;
+  return `<g fill="${fill}">${parts.join("")}</g>`;
 }
