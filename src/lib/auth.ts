@@ -4,11 +4,15 @@ import bcrypt from "bcryptjs";
 
 export type Role = "admin" | "staff" | "customer";
 
+let warnedAboutDefaultSecret = false;
+
 export function getSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("JWT_SECRET is not configured");
+    // Keep the site running without it, but make the gap loud in logs.
+    if (!warnedAboutDefaultSecret) {
+      warnedAboutDefaultSecret = true;
+      console.warn("JWT_SECRET is not configured; using the built-in development secret. Set JWT_SECRET in production.");
     }
     return new TextEncoder().encode("development-secret-change-before-production");
   }
