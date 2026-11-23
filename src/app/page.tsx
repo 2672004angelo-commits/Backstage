@@ -6,6 +6,7 @@ import { getShowPerformances } from "@/lib/show-performances";
 import ShowTicker from "./ShowTicker";
 import HeroTypewriter from "./HeroTypewriter";
 import PublicSiteNavigation from "./PublicSiteNavigation";
+import SocialIcon from "@/components/SocialIcon";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -98,7 +99,11 @@ export default async function Home() {
             {pages.map((page) => <a href={`/pages/${encodeURIComponent(String(page.slug))}`} key={page._id.toString()}>{getPublicPageLabel(String(page.title), String(page.slug))}</a>)}
             <a href="/bookings">حجوزاتي</a>
             {socialLinks.length > 0 && <span className="public-footer-label">تواصل معنا</span>}
-            {socialLinks.map((link, index) => <a href={link.url} key={`${link.url}-${index}`} target="_blank" rel="noopener noreferrer">{link.label}</a>)}
+            {socialLinks.length > 0 && (
+              <span className="public-social-icons">
+                {socialLinks.map((link, index) => <SocialIcon label={link.label} url={link.url} key={`${link.url}-${index}`} />)}
+              </span>
+            )}
           </nav>
           <div className="public-footer-credit" lang="en" dir="ltr">
             <span className="public-footer-label">PRODUCTION</span>

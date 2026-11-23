@@ -10,16 +10,7 @@ export async function POST(request: NextRequest) {
   catch { return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 }); }
   const db = await getDb();
   const key = String(body.key || "");
-  if (key === "payment") {
-    const bankName = typeof body.bankName === "string" ? body.bankName.trim().slice(0, 120) : "";
-    const accountNumber = typeof body.accountNumber === "string" ? body.accountNumber.trim().slice(0, 120) : "";
-    const accountHolder = typeof body.accountHolder === "string" ? body.accountHolder.trim().slice(0, 120) : "";
-    await db.collection("settings").updateOne(
-      { key },
-      { $set: { key, bankName, accountNumber, accountHolder, updatedAt: new Date() } },
-      { upsert: true },
-    );
-  } else if (key === "public") {
+  if (key === "public") {
     if (!Array.isArray(body.socialLinks) || body.socialLinks.length > 10) {
       return NextResponse.json({ error: "INVALID_SOCIAL_LINKS" }, { status: 400 });
     }
@@ -63,7 +54,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
   }
   const key = String(body.key || "");
-  if (!["payment", "public"].includes(key)) {
+  if (!["public"].includes(key)) {
     return NextResponse.json({ error: "INVALID_SETTINGS_KEY" }, { status: 400 });
   }
   await (await getDb()).collection("settings").deleteOne({ key });

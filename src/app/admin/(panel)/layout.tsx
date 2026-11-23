@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdminPanelShell from "./AdminPanelShell";
+import AdminPushAuto from "./AdminPushAuto";
 
 export const metadata: Metadata = {
   title: "لوحة الإدارة",
@@ -11,6 +12,7 @@ export default function AdminPanelLayout({ children }: Readonly<{ children: Reac
     <AdminPanelShell
       databaseConfigured={Boolean(process.env.MONGODB_URI)}
     >
+      <AdminPushAuto />
       {children}
     </AdminPanelShell>
   );

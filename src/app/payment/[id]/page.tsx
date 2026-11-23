@@ -8,29 +8,19 @@ import LanguageToggle from "../../LanguageToggle";
 import { displayBookingNumber } from "@/lib/booking-number";
 import { formatPerformanceTime } from "@/lib/show-performances";
 
-type PaymentAccount = { bankName: string; accountNumber: string; accountHolder: string };
-
-// Default receiving accounts, used until an admin saves payment settings.
-const DEFAULT_PAYMENT_ACCOUNTS: PaymentAccount[] = [
-  { bankName: "Instapay", accountNumber: "01273176278", accountHolder: "" },
-  { bankName: "محفظة كاش", accountNumber: "01229212293", accountHolder: "" },
-];
-
-function PaymentInstructions({ account }: { account?: PaymentAccount | null }) {
-  const accounts = account?.accountNumber
-    ? [{ bankName: account.bankName || "الحساب", accountNumber: account.accountNumber, accountHolder: account.accountHolder }]
-    : DEFAULT_PAYMENT_ACCOUNTS;
+function PaymentInstructions() {
   return (
     <section className="card payment-instructions" aria-labelledby="payment-instructions-title">
-      <h2 id="payment-instructions-title">حوّل المبلغ إلى أحد الأرقام التالية</h2>
+      <h2 id="payment-instructions-title">حوّل المبلغ إلى أحد الرقمين التاليين</h2>
       <div className="payment-instructions-grid">
-        {accounts.map((item) => (
-          <div className="payment-instructions-account" key={item.accountNumber}>
-            <span>{item.bankName}</span>
-            <strong dir="ltr">{item.accountNumber}</strong>
-            {item.accountHolder ? <span>{item.accountHolder}</span> : null}
-          </div>
-        ))}
+        <div className="payment-instructions-account">
+          <span>Instapay</span>
+          <strong dir="ltr">01273176278</strong>
+        </div>
+        <div className="payment-instructions-account">
+          <span>محفظة كاش</span>
+          <strong dir="ltr">01229212293</strong>
+        </div>
       </div>
       <p>اختر طريقة التحويل المناسبة، ثم ارفع صورة واضحة لإثبات الدفع.</p>
     </section>
@@ -84,17 +74,7 @@ export default async function PaymentPage({ params, searchParams }: {
     );
   }
   const db = await getDb();
-  const [booking, paymentSettings] = await Promise.all([
-    db.collection("bookings").findOne({ _id: new ObjectId(id) }),
-    db.collection("settings").findOne({ key: "payment" }),
-  ]);
-  const configuredAccount: PaymentAccount | null = paymentSettings?.accountNumber
-    ? {
-      bankName: String(paymentSettings.bankName || ""),
-      accountNumber: String(paymentSettings.accountNumber),
-      accountHolder: String(paymentSettings.accountHolder || ""),
-    }
-    : null;
+  const booking = await db.collection("bookings").findOne({ _id: new ObjectId(id) });
   if (!booking) {
     const demo = demoShows.find((item) => item._id === id);
     if (!demo) notFound();
@@ -142,7 +122,7 @@ export default async function PaymentPage({ params, searchParams }: {
         </div>
         {["PENDING_PAYMENT", "REJECTED"].includes(booking.status) ? (
           <>
-            <PaymentInstructions account={configuredAccount} />
+            <PaymentInstructions />
             <PaymentUploadForm bookingId={id} />
           </>
         ) : (

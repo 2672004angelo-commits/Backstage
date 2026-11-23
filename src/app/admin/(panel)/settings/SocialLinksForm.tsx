@@ -46,7 +46,7 @@ export default function SocialLinksForm({ initialLinks }: { initialLinks: Social
       {links.map((link, index) => (
         <div className="admin-social-row" key={index}>
           <input className="field" aria-label="اسم المنصة" placeholder="Instagram" value={link.label} onChange={(event) => update(index, { label: event.currentTarget.value })} required />
-          <input className="field" aria-label="رابط المنصة" type="url" placeholder="https://..." value={link.url} onChange={(event) => update(index, { url: event.currentTarget.value })} required />
+          <input className="field" dir="ltr" style={{ textAlign: "left" }} aria-label="رابط المنصة" type="url" placeholder="https://..." value={link.url} onChange={(event) => update(index, { url: event.currentTarget.value })} required />
           <button className="admin-remove-cast" type="button" onClick={() => setLinks((current) => current.filter((_, i) => i !== index))}>إزالة</button>
         </div>
       ))}
