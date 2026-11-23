@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { Resvg } from "@resvg/resvg-js";
 import crypto from "crypto";
 import path from "path";
+import os from "os";
 import type { Db } from "mongodb";
 import { SignJWT, jwtVerify } from "jose";
 import { getSecret } from "@/lib/auth";
@@ -110,7 +111,9 @@ export async function makeTicketPng(input: {
   </svg>`;
   const renderer = new Resvg(svg, {
     font: {
-      // fontBuffers is supported at runtime in resvg-js 2.6 but missing from its type definitions.
+      // fontFiles loads the font inside resvg's native layer, which stays reliable on
+      // serverless runtimes where a JS Buffer may not deserialize into the native binding.
+      fontFiles: [getTicketFontRuntimePath()],
       fontBuffers: [arabicFont],
       loadSystemFonts: false,
       defaultFontFamily: "Noto Sans Arabic",
@@ -120,6 +123,7 @@ export async function makeTicketPng(input: {
 }
 
 let ticketFontBuffer: Buffer | undefined;
+let ticketFontRuntimePath: string | undefined;
 
 function getTicketFontBuffer(): Buffer {
   if (ticketFontBuffer === undefined) {
@@ -130,4 +134,24 @@ function getTicketFontBuffer(): Buffer {
     ticketFontBuffer = fs.readFileSync(fontPath);
   }
   return ticketFontBuffer;
+}
+
+function getTicketFontRuntimePath(): string {
+  if (ticketFontRuntimePath === undefined) {
+    const buffer = getTicketFontBuffer();
+    const runtimePath = path.join(os.tmpdir(), "backstage-ticket-font-noto-sans-arabic.ttf");
+    try {
+      if (!fs.existsSync(runtimePath) || fs.statSync(runtimePath).size !== buffer.length) {
+        fs.writeFileSync(runtimePath, buffer);
+      }
+    } catch {
+      try {
+        fs.writeFileSync(runtimePath, buffer);
+      } catch {
+        throw new Error("TICKET_FONT_UNAVAILABLE");
+      }
+    }
+    ticketFontRuntimePath = runtimePath;
+  }
+  return ticketFontRuntimePath;
 }
