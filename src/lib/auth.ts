@@ -4,8 +4,19 @@ import bcrypt from "bcryptjs";
 
 export type Role = "admin" | "staff" | "customer";
 
+let warnedAboutDefaultSecret = false;
+
 export function getSecret() {
-  return new TextEncoder().encode(process.env.JWT_SECRET || "development-secret-change-before-production");
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    // Keep the site running without it, but make the gap loud in logs.
+    if (!warnedAboutDefaultSecret) {
+      warnedAboutDefaultSecret = true;
+      console.warn("JWT_SECRET is not configured; using the built-in development secret. Set JWT_SECRET in production.");
+    }
+    return new TextEncoder().encode("development-secret-change-before-production");
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function signSession(subject: string, role: Role) {

@@ -127,7 +127,7 @@ export default function BookingSearch() {
       const searchCredentials = {
         bookingId: "",
         mobile: String(form.get("mobile") || "").trim().replace(/^\+/, ""),
-        email: "",
+        email: String(form.get("email") || "").trim().toLowerCase(),
       };
       const response = await fetch("/api/bookings/search", {
         method: "POST",
@@ -152,8 +152,9 @@ export default function BookingSearch() {
   return (
     <div>
       <form onSubmit={submit} className="card booking-search-form">
-        <p>أدخل رقم الهاتف الذي استخدمته عند الحجز لعرض جميع حجوزاتك وحالات التذاكر.</p>
+        <p>أدخل رقم الهاتف والبريد الإلكتروني اللذين استخدمتهما عند الحجز لعرض جميع حجوزاتك وحالات التذاكر.</p>
         <input className="field" name="mobile" type="tel" inputMode="tel" placeholder="رقم الهاتف" required pattern="[0-9]{8,15}" />
+        <input className="field" name="email" type="email" inputMode="email" placeholder="البريد الإلكتروني" required />
         <button className="btn" type="submit" disabled={loading}>{loading ? "جارٍ البحث..." : "عرض حالة الحجز"}</button>
       </form>
       {error && <p className="admin-form-status is-error" role="alert">{error}</p>}

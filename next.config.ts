@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sharp", "mongodb"],
+  serverExternalPackages: ["@resvg/resvg-js", "mongodb"],
   outputFileTracingIncludes: {
     "/api/**": ["./public/fonts/NotoSansArabic.ttf"],
     "/api/admin/payments/*": ["./public/fonts/NotoSansArabic.ttf"],

@@ -185,13 +185,13 @@ export default function BookingForm({
           inputMode="tel"
           required
           title="أدخل رقم هاتف صحيحًا"
-          placeholder="0770 123 4567"
-          defaultValue={demoMode ? "07701234567" : undefined}
+          placeholder="010 1234 5678"
+          defaultValue={demoMode ? "01012345678" : undefined}
         />
       </label>
       <label className="public-booking-field">
-        البريد الإلكتروني (اختياري)
-        <input className="field" name="email" type="email" />
+        البريد الإلكتروني (ستحتاجه مع رقم هاتفك لمتابعة الحجز)
+        <input className="field" name="email" type="email" required />
       </label>
       <p className="public-booking-note">
         تذكرة واحدة لكل رقم هاتف أو بريد إلكتروني في الليلة الواحدة. يمكن الحجز لليالي أخرى كلٌّ على حدة.

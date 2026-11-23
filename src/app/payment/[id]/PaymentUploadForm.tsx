@@ -22,9 +22,10 @@ export default function PaymentUploadForm({ bookingId }: { bookingId: string }) 
       }
       window.location.replace(`/payment/${encodeURIComponent(bookingId)}?submitted=1`);
     } catch (uploadError) {
-      setError(uploadError instanceof Error
-        ? "تعذر رفع إثبات التحويل. تأكد من الصورة وحدودها وحاول مرة أخرى."
-        : "تعذر رفع إثبات التحويل.");
+      const code = uploadError instanceof Error ? uploadError.message : "";
+      setError(code === "NOT_ENOUGH_CAPACITY"
+        ? "اكتمل عدد مقاعد هذه الليلة قبل وصول إثبات الدفع. تواصل مع إدارة المسرح لاسترداد المبلغ أو اختيار ليلة أخرى."
+        : "تعذر رفع إثبات التحويل. تأكد من الصورة وحدودها وحاول مرة أخرى.");
     } finally {
       setLoading(false);
     }

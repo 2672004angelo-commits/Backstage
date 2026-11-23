@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { bookingSchema } from "@/lib/validation";
 import { getShowPerformances } from "@/lib/show-performances";
 import { bookingContactQuery, performanceBookingQuery } from "@/lib/booking-lookup";
+import { withPerformanceLock, performanceLockId, soldQuantityForPerformance, BookingConflict } from "@/lib/capacity";
 import { deleteFile } from "@/lib/gridfs";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -70,52 +71,52 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   const mobile = parsed.data.mobile.replace(/^\+/, "");
   const email = parsed.data.email ? parsed.data.email.trim().toLowerCase() : null;
-  const duplicate = await bookings.findOne({
-    showId,
-    _id: { $ne: bookingId },
-    $and: [
-      { $or: performanceBookingQuery(performance) },
-      { $or: bookingContactQuery(mobile, email) },
-    ],
-  });
-  if (duplicate) return NextResponse.json({ error: "BOOKING_ALREADY_EXISTS" }, { status: 409 });
+  const client = await mongoPromise();
+  const lockId = performanceLockId(showId.toHexString(), performance.id);
+  try {
+    await withPerformanceLock(client, db, lockId, async (dbSession) => {
+      const duplicate = await bookings.findOne({
+        showId,
+        _id: { $ne: bookingId },
+        $and: [
+          { $or: performanceBookingQuery(performance) },
+          { $or: bookingContactQuery(mobile, email) },
+        ],
+      }, { session: dbSession });
+      if (duplicate) throw new BookingConflict("BOOKING_ALREADY_EXISTS");
 
-  if (performance.id !== booking.performanceId) {
-    const activeStatuses = ["PENDING_PAYMENT", "PENDING_REVIEW", "APPROVED"];
-    const sold = await bookings.aggregate([
-      {
-        $match: {
-          _id: { $ne: bookingId },
-          showId,
-          status: { $in: activeStatuses },
-          $or: performanceBookingQuery(performance),
+      if (performance.id !== booking.performanceId) {
+        const soldQuantity = await soldQuantityForPerformance(db, showId, performance, dbSession, bookingId);
+        if (soldQuantity + Number(booking.quantity) > Number(show.capacity)) {
+          throw new BookingConflict("NOT_ENOUGH_CAPACITY");
+        }
+      }
+
+      await bookings.updateOne({ _id: bookingId }, {
+        $set: {
+          fullName: parsed.data.fullName,
+          mobile,
+          mobileNormalized: mobile,
+          email,
+          emailNormalized: email,
+          performanceId: performance.id,
+          showSnapshot: {
+            title: show.title,
+            performanceId: performance.id,
+            date: performance.date,
+            time: performance.time,
+            venue: show.venue,
+          },
+          updatedAt: new Date(),
         },
-      },
-      { $group: { _id: null, quantity: { $sum: "$quantity" } } },
-    ]).next();
-    if ((sold?.quantity || 0) + Number(booking.quantity) > Number(show.capacity)) {
-      return NextResponse.json({ error: "NOT_ENOUGH_CAPACITY" }, { status: 409 });
+      }, { session: dbSession });
+    });
+  } catch (error) {
+    if (error instanceof BookingConflict) {
+      return NextResponse.json({ error: error.code }, { status: 409 });
     }
+    throw error;
   }
-
-  await bookings.updateOne({ _id: bookingId }, {
-    $set: {
-      fullName: parsed.data.fullName,
-      mobile,
-      mobileNormalized: mobile,
-      email,
-      emailNormalized: email,
-      performanceId: performance.id,
-      showSnapshot: {
-        title: show.title,
-        performanceId: performance.id,
-        date: performance.date,
-        time: performance.time,
-        venue: show.venue,
-      },
-      updatedAt: new Date(),
-    },
-  });
   await db.collection("auditLogs").insertOne({
     action: "BOOKING_UPDATED",
     bookingId,
